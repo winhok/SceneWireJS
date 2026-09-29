@@ -1,0 +1,28 @@
+{
+  "name": "@scenewirejs/editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "@scenewirejs/schema": "workspace:*",
+    "@scenewirejs/time": "workspace:*",
+    "@scenewirejs/runtime": "workspace:*",
+    "@scenewirejs/renderer-canvas": "workspace:*",
+    "@scenewirejs/editor-core": "workspace:*",
+    "zustand": "^5.0.8",
+    "@scenewirejs/domain-developer": "workspace:*",
+    "@scenewirejs/audio": "workspace:*",
+    "@scenewirejs/compiler": "workspace:*",
+    "@scenewirejs/media": "workspace:*",
+    "@scenewirejs/domain-education": "workspace:*",
+    "@scenewirejs/domain-editorial": "workspace:*",
+    "@scenewirejs/patch": "workspace:*"
+  },
+  "license": "MIT"
+}

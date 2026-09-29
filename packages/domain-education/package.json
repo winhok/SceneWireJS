@@ -1,0 +1,31 @@
+{
+  "name": "@scenewirejs/domain-education",
+  "version": "1.0.0-rc.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@scenewirejs/schema": "workspace:*",
+    "@scenewirejs/runtime": "workspace:*"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/winhok/SceneWireJS.git",
+    "directory": "packages/domain-education"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,59 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "paths": {
+      "@scenewirejs/web-runtime": ["./packages/web-runtime/src/index.ts"],
+      "@scenewirejs/domain-developer": [
+        "./packages/domain-developer/src/index.ts"
+      ],
+      "@scenewirejs/domain-editorial": [
+        "./packages/domain-editorial/src/index.ts"
+      ],
+      "@scenewirejs/reference-core": ["./packages/reference-core/src/index.ts"],
+      "@scenewirejs/editor-core": ["./packages/editor-core/src/index.ts"],
+      "@scenewirejs/domain-education": [
+        "./packages/domain-education/src/index.ts"
+      ],
+      "@scenewirejs/runtime": ["./packages/runtime/src/index.ts"],
+      "@scenewirejs/time": ["./packages/time/src/index.ts"],
+      "@scenewirejs/schema": ["./packages/schema/src/index.ts"],
+      "@scenewirejs/renderer-canvas": [
+        "./packages/renderer-canvas/src/index.ts"
+      ],
+      "@scenewirejs/audio": ["./packages/audio/src/index.ts"],
+      "@scenewirejs/patch": ["./packages/patch/src/index.ts"],
+      "@scenewirejs/director-core": ["./packages/director-core/src/index.ts"],
+      "@scenewirejs/production-core": [
+        "./packages/production-core/src/index.ts"
+      ],
+      "@scenewirejs/media-inspect": ["./packages/media-inspect/src/index.ts"],
+      "@scenewirejs/compiler": ["./packages/compiler/src/index.ts"],
+      "@scenewirejs/renderer-core": ["./packages/renderer-core/src/index.ts"],
+      "@scenewirejs/renderer-web": ["./packages/renderer-web/src/index.ts"],
+      "@scenewirejs/media": ["./packages/media/src/index.ts"],
+      "@scenewirejs/renderer-web/export": [
+        "./packages/renderer-web/src/export.ts"
+      ],
+      "@scenewirejs/renderer-web/preview": [
+        "./packages/renderer-web/src/preview.ts"
+      ]
+    }
+  },
+  "include": [
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "apps/cli/**/*.ts",
+    "apps/editor/src/**/*.ts",
+    "apps/editor/src/**/*.tsx"
+  ]
+}

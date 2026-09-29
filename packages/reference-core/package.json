@@ -1,0 +1,30 @@
+{
+  "name": "@scenewirejs/reference-core",
+  "version": "1.0.0-rc.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "zod": "^4.1.11"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/winhok/SceneWireJS.git",
+    "directory": "packages/reference-core"
+  },
+  "license": "MIT"
+}

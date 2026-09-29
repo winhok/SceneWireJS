@@ -1,0 +1,30 @@
+{
+  "name": "@scenewirejs/web-runtime",
+  "version": "1.0.0-rc.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@scenewirejs/renderer-core": "workspace:*"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/winhok/SceneWireJS.git",
+    "directory": "packages/web-runtime"
+  },
+  "license": "MIT"
+}

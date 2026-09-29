@@ -1,0 +1,304 @@
+import { videoDiagnostics } from '@scenewirejs/schema';
+import { referenceCommand } from './reference';
+import { productionCommand } from './production';
+import { validateVisualPlan } from '@scenewirejs/director-core';
+import { installedEngineRegistry } from './director';
+import { scaffold } from './scaffold';
+import { readFile, open, realpath } from 'node:fs/promises';
+import { resolve, dirname } from 'node:path';
+import { writeFile } from 'node:fs/promises';
+import { parseProject, serializeProject } from '@scenewirejs/schema';
+import { createPrimitiveRegistry } from '@scenewirejs/runtime';
+import { createDeveloperRegistry } from '@scenewirejs/domain-developer';
+import { createEducationRegistry } from '@scenewirejs/domain-education';
+import { createEditorialRegistry } from '@scenewirejs/domain-editorial';
+import {
+  inspectProject,
+  inspectScene,
+  inspectClip,
+  validateProjectForEditing,
+  dryRunPatchPlan,
+  PatchError,
+} from '@scenewirejs/patch';
+const registry = [
+  ...createPrimitiveRegistry(),
+  ...createDeveloperRegistry(),
+  ...createEducationRegistry(),
+  ...createEditorialRegistry(),
+];
+const emit = (value: unknown) =>
+  process.stdout.write(`${JSON.stringify(value)}\n`);
+let rendererError:
+  typeof import('@scenewirejs/renderer-web').RenderError | undefined;
+async function main(args: string[]) {
+  const [command, file, ...rest] = args;
+  if (command && ['media', 'reference', 'reference-check'].includes(command)) {
+    const result = await referenceCommand(command, args.slice(1));
+    emit(result);
+    if ('valid' in result && !result.valid) process.exitCode = 1;
+    return;
+  }
+  if (
+    command &&
+    [
+      'brief-check',
+      'sources-check',
+      'narrative-check',
+      'production-init',
+      'production-check',
+    ].includes(command)
+  ) {
+    if (!file) throw new Error('Production command requires an input file');
+    const report = await productionCommand(command, file, rest);
+    emit(report);
+    if (!report.valid) process.exitCode = 1;
+    return;
+  }
+  if (command === 'engines') {
+    if (file || rest.length) throw new Error('Usage: scenewire engines');
+    return emit(installedEngineRegistry().listEngines());
+  }
+  if (command === 'scaffold') {
+    if (!file || rest.length !== 1)
+      throw new Error('Usage: scenewire scaffold <engine> <new-directory>');
+    return emit(await scaffold(file, rest[0]!));
+  }
+  if (command === 'plan-check') {
+    if (
+      !file ||
+      (rest.length && !(rest.length === 2 && rest[0] === '--project'))
+    )
+      throw new Error(
+        'Usage: scenewire plan-check <plan.json> [--project <project.json>]',
+      );
+    const sceneIds = rest.length
+      ? parseProject(await readFile(rest[1]!, 'utf8')).scenes.map((s) => s.id)
+      : undefined;
+    const report = validateVisualPlan(
+      JSON.parse(await readFile(file, 'utf8')),
+      installedEngineRegistry(),
+      sceneIds,
+    );
+    emit(report);
+    if (!report.valid) process.exitCode = 1;
+    return;
+  }
+  if (!file)
+    throw new Error(
+      'Usage: scenewire inspect|inspect-scene|inspect-clip|validate|patch <project.json> ...',
+    );
+  const projectText = await readFile(file, 'utf8');
+  const mediaIssues = videoDiagnostics(JSON.parse(projectText));
+  if (mediaIssues.length) {
+    emit({ valid: false, issues: mediaIssues });
+    process.exitCode = 1;
+    return;
+  }
+  const project = parseProject(projectText);
+  if (
+    ['capture', 'contact-sheet', 'render-check', 'render', 'preview'].includes(
+      command ?? '',
+    )
+  ) {
+    const { WebRendererSession, renderCheck, RenderError } =
+      await import('@scenewirejs/renderer-web');
+    rendererError = RenderError;
+    const { writeDebugPreview } =
+      await import('@scenewirejs/renderer-web/preview');
+    const { renderVideo } = await import('@scenewirejs/renderer-web/export');
+    const flags = new Map<string, string>();
+    for (let index = 0; index < rest.length; index += 2) {
+      const flag = rest[index]!,
+        value = rest[index + 1];
+      if (
+        !(
+          command === 'capture'
+            ? ['--frame', '--output']
+            : command === 'contact-sheet'
+              ? ['--frames', '--output']
+              : command === 'render-check'
+                ? ['--frames']
+                : command === 'render'
+                  ? [
+                      '--output',
+                      '--start-frame',
+                      '--end-frame',
+                      '--profile',
+                      '--workers',
+                      '--chunk-frames',
+                    ]
+                  : ['--output', '--profile']
+        ).includes(flag) ||
+        value === undefined ||
+        flags.has(flag)
+      )
+        throw new Error('Invalid render arguments');
+      flags.set(flag, value);
+    }
+    if (
+      flags.has('--profile') &&
+      !['preview', 'deterministic-export'].includes(flags.get('--profile')!)
+    )
+      throw new Error('Invalid render profile');
+    const controller = new AbortController(),
+      cancel = () => controller.abort();
+    process.once('SIGINT', cancel);
+    process.once('SIGTERM', cancel);
+    const options = {
+      project,
+      projectRoot: dirname(resolve(file)),
+      signal: controller.signal,
+      profile: flags.get('--profile') as
+        'preview' | 'deterministic-export' | undefined,
+    };
+    try {
+      if (command === 'render-check')
+        return emit(
+          await renderCheck(
+            options,
+            flags.has('--frames')
+              ? flags.get('--frames')!.split(',').map(Number)
+              : undefined,
+          ),
+        );
+      const output = flags.get('--output');
+      if (!output) throw new Error('--output is required');
+      if (command === 'preview')
+        return emit(await writeDebugPreview(options, output));
+      if (command === 'render') {
+        const range =
+          flags.has('--start-frame') || flags.has('--end-frame')
+            ? {
+                startFrame: Number(flags.get('--start-frame')),
+                endFrame: Number(flags.get('--end-frame')),
+              }
+            : undefined;
+        return emit(
+          await renderVideo({
+            ...options,
+            output,
+            range,
+            workers: flags.has('--workers')
+              ? flags.get('--workers') === 'auto'
+                ? 'auto'
+                : Number(flags.get('--workers'))
+              : undefined,
+            chunkFrames: flags.has('--chunk-frames')
+              ? Number(flags.get('--chunk-frames'))
+              : undefined,
+            onRenderProgress(progress) {
+              if (
+                progress.phase !== 'render' ||
+                progress.framesCompleted % project.fps === 0 ||
+                progress.framesCompleted === progress.framesTotal
+              )
+                process.stderr.write(
+                  `${JSON.stringify({ code: 'render.progress', ...progress })}\n`,
+                );
+            },
+          }),
+        );
+      }
+      const frames =
+        command === 'capture'
+          ? [Number(flags.get('--frame'))]
+          : (flags.get('--frames') ?? '').split(',').map(Number);
+      if (
+        (command === 'capture' && !flags.has('--frame')) ||
+        !frames.length ||
+        frames.some((frame) => !Number.isInteger(frame) || frame < 0)
+      )
+        throw new Error('Valid frame selection required');
+      const session = new WebRendererSession(options);
+      try {
+        await session.prepare();
+        const images: Buffer[] = [];
+        for (const frame of frames)
+          images.push(
+            (await session.renderFrame(session.contextAt(frame))).source,
+          );
+        if (command === 'capture')
+          await writeFile(output, images[0]!, { flag: 'wx' });
+        else {
+          // SVG is a portable contact-sheet artifact; frame PNGs are embedded without dependencies.
+          const columns = Math.min(3, frames.length),
+            width = 480,
+            height = (width * project.canvas.height) / project.canvas.width;
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${columns * width}" height="${Math.ceil(frames.length / columns) * (height + 28)}">${images.map((bytes, index) => `<image x="${(index % columns) * width}" y="${Math.floor(index / columns) * (height + 28)}" width="${width}" height="${height}" href="data:image/png;base64,${bytes.toString('base64')}"/><text x="${(index % columns) * width + 8}" y="${Math.floor(index / columns) * (height + 28) + height + 20}" font-size="16">Frame ${frames[index]}</text>`).join('')}</svg>`;
+          await writeFile(output, svg, { flag: 'wx' });
+        }
+        await session.dispose();
+        return emit({
+          output,
+          frames,
+          performance: session.performanceReport(),
+        });
+      } finally {
+        await session.dispose();
+      }
+    } finally {
+      process.removeListener('SIGINT', cancel);
+      process.removeListener('SIGTERM', cancel);
+    }
+  }
+  if (command === 'inspect' && rest.length === 0)
+    return emit(inspectProject(project, registry));
+  if (command === 'inspect-scene' && rest.length === 1)
+    return emit(inspectScene(project, rest[0]!));
+  if (command === 'inspect-clip' && rest.length === 1)
+    return emit(inspectClip(project, rest[0]!));
+  if (command === 'validate' && rest.length === 0) {
+    const issues = validateProjectForEditing(project, registry),
+      valid = !issues.some((i) => i.severity === 'error');
+    emit({ valid, issues });
+    if (!valid) {
+      process.stderr.write(
+        `${JSON.stringify({ code: 'project.invalid', issues })}\n`,
+      );
+      process.exitCode = 1;
+    }
+    return;
+  }
+  if (command === 'patch') {
+    const [patchFile, flag, output, ...extra] = rest;
+    if (
+      !patchFile ||
+      extra.length ||
+      !(
+        (flag === '--dry-run' && output === undefined) ||
+        (flag === '--output' && output)
+      )
+    )
+      throw new Error(
+        'Usage: scenewire patch <project.json> <patch.json> --dry-run | --output <new.json>',
+      );
+    if (output && [file, patchFile].some((f) => resolve(f) === resolve(output)))
+      throw new Error('Output must differ from both inputs');
+    const plan: unknown = JSON.parse(await readFile(patchFile, 'utf8'));
+    const report = dryRunPatchPlan(project, plan, registry);
+    if (!report.valid) throw new PatchError(report.issues);
+    if (output) {
+      // Exclusive creation protects existing files and symlinks, including aliases to inputs.
+      await realpath(file);
+      const handle = await open(output, 'wx');
+      try {
+        await handle.writeFile(
+          serializeProject(report.resultingProject!),
+          'utf8',
+        );
+      } finally {
+        await handle.close();
+      }
+    }
+    const { resultingProject: _candidate, ...summary } = report;
+    void _candidate;
+    return emit({ ...summary, ...(output ? { output } : {}) });
+  }
+  throw new Error('Unknown command or unexpected arguments');
+}
+main(process.argv.slice(2)).catch((cause: unknown) => {
+  process.stderr.write(
+    `${JSON.stringify({ code: 'cli.error', ...(rendererError && cause instanceof rendererError ? { diagnostic: cause.diagnostic } : {}), issues: cause instanceof PatchError ? cause.issues : [{ severity: 'error', code: 'cli.error', message: cause instanceof Error ? cause.message : String(cause) }] })}\n`,
+  );
+  process.exitCode = 1;
+});

@@ -1,0 +1,10 @@
+export * from './schema';
+export * from './inspect';
+export { type PatchChange } from './contracts';
+export { type FrameRange } from './contracts';
+export { type PatchDryRunReport } from './contracts';
+export { type PatchResult } from './contracts';
+export { mergeAffectedRanges } from './ranges';
+export { suggestPreviewFrames } from './ranges';
+export { dryRunPatchPlan } from './transaction';
+export { applyPatchPlan } from './transaction';

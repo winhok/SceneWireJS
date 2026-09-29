@@ -1,0 +1,40 @@
+{
+  "name": "@scenewirejs/cli",
+  "version": "1.0.0-rc.1",
+  "type": "module",
+  "bin": {
+    "scenewire": "./dist/scenewire.js"
+  },
+  "scripts": {
+    "build": "vite build",
+    "start": "node dist/scenewire.js"
+  },
+  "dependencies": {
+    "@scenewirejs/patch": "workspace:*",
+    "@scenewirejs/schema": "workspace:*",
+    "@scenewirejs/runtime": "workspace:*",
+    "@scenewirejs/domain-developer": "workspace:*",
+    "@scenewirejs/domain-education": "workspace:*",
+    "@scenewirejs/domain-editorial": "workspace:*",
+    "@scenewirejs/renderer-web": "workspace:*",
+    "@scenewirejs/director-core": "workspace:*",
+    "@scenewirejs/production-core": "workspace:*",
+    "@scenewirejs/reference-core": "workspace:*",
+    "@scenewirejs/media-inspect": "workspace:*"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/winhok/SceneWireJS.git",
+    "directory": "apps/cli"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,73 @@
+{
+  "name": "@scenewirejs/renderer-web",
+  "version": "1.0.0-rc.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./export": {
+      "types": "./dist/export.d.ts",
+      "import": "./dist/export.js",
+      "default": "./dist/export.js"
+    },
+    "./preview": {
+      "types": "./dist/preview.d.ts",
+      "import": "./dist/preview.js",
+      "default": "./dist/preview.js"
+    }
+  },
+  "dependencies": {
+    "@scenewirejs/renderer-core": "workspace:*",
+    "@scenewirejs/web-runtime": "workspace:*",
+    "@scenewirejs/schema": "workspace:*",
+    "@scenewirejs/runtime": "workspace:*",
+    "@scenewirejs/renderer-canvas": "workspace:*",
+    "@scenewirejs/compiler": "workspace:*",
+    "@scenewirejs/domain-developer": "workspace:*",
+    "@scenewirejs/domain-education": "workspace:*",
+    "@scenewirejs/domain-editorial": "workspace:*",
+    "vite": "^8.3.1",
+    "@scenewirejs/director-core": "workspace:*",
+    "mediabunny": "^1.60.0",
+    "playwright": "^1.63.0",
+    "@types/node": "^26.6.3"
+  },
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/winhok/SceneWireJS.git",
+    "directory": "packages/renderer-web"
+  },
+  "peerDependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "pixi.js": "^8.21.0",
+    "three": "^0.186.1"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "pixi.js": {
+      "optional": true
+    },
+    "three": {
+      "optional": true
+    }
+  },
+  "license": "MIT"
+}

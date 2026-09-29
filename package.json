@@ -1,0 +1,63 @@
+{
+  "name": "scenewire",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@12.6.0",
+  "scripts": {
+    "dev": "pnpm --filter @scenewirejs/editor dev",
+    "build": "pnpm build:cli && pnpm build:editor",
+    "build:packages": "node scripts/build-packages.mjs",
+    "build:cli": "pnpm build:packages && pnpm --filter @scenewirejs/cli build",
+    "build:editor": "pnpm --filter @scenewirejs/editor build",
+    "typecheck": "tsc6 --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "package:check": "node scripts/package-check.mjs",
+    "package:pack": "pnpm build:cli && node scripts/package-pack.mjs",
+    "package:smoke": "pnpm package:pack && node scripts/package-smoke.mjs"
+  },
+  "devDependencies": {
+    "@scenewirejs/audio": "workspace:*",
+    "@scenewirejs/compiler": "workspace:*",
+    "@scenewirejs/director-core": "workspace:*",
+    "@scenewirejs/domain-developer": "workspace:*",
+    "@scenewirejs/domain-editorial": "workspace:*",
+    "@scenewirejs/domain-education": "workspace:*",
+    "@scenewirejs/editor-core": "workspace:*",
+    "@scenewirejs/media": "workspace:*",
+    "@scenewirejs/media-inspect": "workspace:*",
+    "@scenewirejs/patch": "workspace:*",
+    "@scenewirejs/production-core": "workspace:*",
+    "@scenewirejs/reference-core": "workspace:*",
+    "@scenewirejs/renderer-canvas": "workspace:*",
+    "@scenewirejs/renderer-core": "workspace:*",
+    "@scenewirejs/renderer-web": "workspace:*",
+    "@scenewirejs/runtime": "workspace:*",
+    "@scenewirejs/schema": "workspace:*",
+    "@scenewirejs/time": "workspace:*",
+    "@scenewirejs/web-runtime": "workspace:*",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "0.186.0",
+    "eslint": "^10.11.0",
+    "pixi.js": "8.21.0",
+    "prettier": "^3.9.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "three": "0.186.1",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.70.1",
+    "vite": "^8.3.1"
+  },
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/winhok/SceneWireJS.git"
+  }
+}
