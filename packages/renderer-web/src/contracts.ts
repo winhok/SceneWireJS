@@ -1,6 +1,8 @@
 import type { CaptureBackendId } from './capture';
 import type { VideoProject } from '@scenewirejs/schema';
 export interface RenderDiagnostic {
+  retainedPicture?: string;
+  encoder?: import('./export/encoder').EncoderDiagnostic;
   worker?: number;
   chunk?: string;
   engine?: string;

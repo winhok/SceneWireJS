@@ -1,6 +1,6 @@
 {
   "name": "@scenewirejs/renderer-web",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "type": "module",
   "exports": {
     ".": {
@@ -20,6 +20,7 @@
     }
   },
   "dependencies": {
+    "@scenewirejs/media-inspect": "workspace:*",
     "@scenewirejs/renderer-core": "workspace:*",
     "@scenewirejs/web-runtime": "workspace:*",
     "@scenewirejs/schema": "workspace:*",

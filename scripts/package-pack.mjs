@@ -30,7 +30,7 @@ for (const directory of directories) {
     tarball = resolve(artifactRoot, filename);
   const files = execFileSync('tar', ['-tzf', tarball], { encoding: 'utf8' })
     .trim()
-    .split('\n');
+    .split(/\r?\n/);
   const packed = JSON.parse(
     execFileSync('tar', ['-xOf', tarball, 'package/package.json'], {
       encoding: 'utf8',
@@ -52,6 +52,28 @@ for (const directory of directories) {
       )
     )
       throw Error(`Unbounded packed file: ${file}`);
+  if (directory === 'apps/cli') {
+    const skills = [
+      'scenewire',
+      'scenewire-create',
+      'scenewire-direct',
+      'scenewire-edit',
+      'scenewire-review',
+      'scenewire-reference',
+      'scenewire-footage',
+    ];
+    const expected = skills
+      .map((skill) => `package/dist/skills/${skill}/SKILL.md`)
+      .sort();
+    const actual = files
+      .filter(
+        (file) =>
+          file.startsWith('package/dist/skills/') && !file.endsWith('/'),
+      )
+      .sort();
+    if (JSON.stringify(actual) !== JSON.stringify(expected))
+      throw Error('CLI must ship exactly seven owned skill entries');
+  }
   const targets = Object.values(packed.exports ?? {}).flatMap((target) =>
     Object.values(target),
   );

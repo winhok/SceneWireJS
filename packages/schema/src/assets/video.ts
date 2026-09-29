@@ -54,3 +54,81 @@ export function videoSourceOutMs(
     (clip.durationFrames / fps) * 1000 * clip.props.playbackRate
   );
 }
+
+/** Only IEEE-754 arithmetic roundoff is snapped, never probe uncertainty. */
+export function mediaPlayableFrames(
+  durationMs: number,
+  sourceInMs: number,
+  playbackRate: number,
+  projectFps: number,
+  terminalPartialFrame = false,
+): number {
+  if (
+    ![durationMs, sourceInMs, playbackRate, projectFps].every(
+      Number.isFinite,
+    ) ||
+    durationMs < 0 ||
+    sourceInMs < 0 ||
+    playbackRate <= 0 ||
+    projectFps <= 0
+  )
+    throw new Error('Invalid media time inputs');
+  const frames = Math.max(
+    0,
+    ((durationMs - sourceInMs) * projectFps) / (1000 * playbackRate),
+  );
+  const nearest = Math.round(frames);
+  const snapped =
+    Math.abs(frames - nearest) <=
+    Number.EPSILON * Math.max(1, Math.abs(frames)) * 8
+      ? nearest
+      : frames;
+  if (!terminalPartialFrame) return Math.floor(snapped);
+  // Audio pads only the asset's terminal partial project frame. An offset
+  // cannot create a fresh rounding allowance (or hide a real range overflow).
+  const totalFrames = (durationMs * projectFps) / (1000 * playbackRate);
+  const totalNearest = Math.round(totalFrames);
+  const totalSnapped =
+    Math.abs(totalFrames - totalNearest) <=
+    Number.EPSILON * Math.max(1, Math.abs(totalFrames)) * 8
+      ? totalNearest
+      : totalFrames;
+  const available = Math.max(
+    0,
+    Math.ceil(totalSnapped) - (sourceInMs * projectFps) / (1000 * playbackRate),
+  );
+  const availableNearest = Math.round(available);
+  return Math.floor(
+    Math.abs(available - availableNearest) <=
+      Number.EPSILON * Math.max(1, Math.abs(available)) * 8
+      ? availableNearest
+      : available,
+  );
+}
+export function mediaRangeDetails(
+  durationMs: number,
+  sourceInMs: number,
+  playbackRate: number,
+  projectFps: number,
+  requestedFrameCount: number,
+  terminalPartialFrame = false,
+) {
+  const sourceOut =
+    sourceInMs + (requestedFrameCount * 1000 * playbackRate) / projectFps;
+  return {
+    sourceIn: sourceInMs,
+    sourceOut,
+    availableDuration: durationMs,
+    requestedFrameCount,
+    maxPlayableFrames: mediaPlayableFrames(
+      durationMs,
+      sourceInMs,
+      playbackRate,
+      projectFps,
+      terminalPartialFrame,
+    ),
+    projectFps,
+    playbackRate,
+    delta: sourceOut - durationMs,
+  };
+}

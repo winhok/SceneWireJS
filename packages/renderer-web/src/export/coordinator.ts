@@ -16,6 +16,7 @@ import { projectSchema } from '@scenewirejs/schema';
 import { WebRendererSession } from '../session/session';
 import { RenderError } from '../contracts';
 import type { ExportOptions } from './options';
+import { EncoderError } from './encoder';
 import { mixAndMuxProjectAudio } from './audio';
 import { concatSilentChunks } from './chunk';
 import { validateSilentPicture } from './validation';
@@ -89,6 +90,8 @@ export async function renderVideo(options: ExportOptions) {
       chunksTotal: plan.chunks.length,
     });
   let failure: unknown;
+  let validatedPicture: string | undefined;
+  let retainPicture = false;
   const fail = (error: unknown) => {
     failure ??= error;
     controller.abort();
@@ -179,6 +182,8 @@ export async function renderVideo(options: ExportOptions) {
       frameCount,
       controller.signal,
     );
+    validatedPicture = video;
+    clearTimeout(timer); // Audio is bounded by progress-aware inactivity instead.
     phase = 'audio';
     progress();
     const audioStart = performance.now();
@@ -189,6 +194,10 @@ export async function renderVideo(options: ExportOptions) {
       video,
       join(directory, 'final.mp4'),
       controller.signal,
+      {
+        stallTimeoutMs: options.audioStallTimeoutMs,
+        onProgress: options.onAudioProgress,
+      },
     );
     const audioMuxMs = performance.now() - audioStart;
     phase = 'finalize';
@@ -218,6 +227,7 @@ export async function renderVideo(options: ExportOptions) {
     });
   } catch (error) {
     controller.abort();
+    retainPicture = phase === 'audio' && validatedPicture !== undefined;
     if (error instanceof RenderError) throw error;
     throw new RenderError({
       renderer: 'web',
@@ -225,6 +235,8 @@ export async function renderVideo(options: ExportOptions) {
       composition: 'project',
       frame: null,
       phase,
+      ...(retainPicture ? { retainedPicture: validatedPicture } : {}),
+      ...(error instanceof EncoderError ? { encoder: error.diagnostic } : {}),
       error: error instanceof Error ? error.message : String(error),
     });
   } finally {
@@ -232,6 +244,12 @@ export async function renderVideo(options: ExportOptions) {
     clearInterval(memoryTimer);
     options.signal?.removeEventListener('abort', abort);
     await Promise.all(sessions.map((s) => s.dispose()));
-    await rm(directory, { recursive: true, force: true });
+    if (retainPicture) {
+      await Promise.all(
+        [...files, join(directory, 'final.mp4'), join(directory, 'chunks.txt')]
+          .filter((file) => file !== validatedPicture)
+          .map((file) => rm(file, { force: true })),
+      );
+    } else await rm(directory, { recursive: true, force: true });
   }
 }

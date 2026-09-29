@@ -13,10 +13,16 @@ export function ease(t: number, name: EasingName): number {
       return 1 - (1 - t) ** 2;
     case 'easeInOut':
       return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
-    case 'easeOutCubic':
-      return 1 - (1 - t) ** 3;
-    case 'easeInOutCubic':
-      return t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
+    // Integer powers use a fixed multiplication order: V8/libm pow differs
+    // between supported Node versions for fractional bases.
+    case 'easeOutCubic': {
+      const u = 1 - t;
+      return 1 - u * u * u;
+    }
+    case 'easeInOutCubic': {
+      const u = -2 * t + 2;
+      return t < 0.5 ? 4 * t * t * t : 1 - (u * u * u) / 2;
+    }
   }
 }
 export function interpolate(

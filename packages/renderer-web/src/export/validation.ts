@@ -1,4 +1,7 @@
-import { spawn } from 'node:child_process';
+import {
+  spawnMediaProcess,
+  terminateMediaProcess,
+} from '@scenewirejs/media-inspect';
 import type { VideoProject } from '@scenewirejs/schema';
 export async function validateSilentPicture(
   file: string,
@@ -6,7 +9,7 @@ export async function validateSilentPicture(
   frames: number,
   signal: AbortSignal,
 ) {
-  const child = spawn(
+  const child = spawnMediaProcess(
     'ffprobe',
     [
       '-v',
@@ -21,15 +24,15 @@ export async function validateSilentPicture(
     ],
     { stdio: ['ignore', 'pipe', 'pipe'] },
   );
-  const abort = () => child.kill('SIGKILL');
+  const abort = () => terminateMediaProcess(child);
   signal.addEventListener('abort', abort, { once: true });
   let text = '',
     stderr = '';
-  child.stdout.on('data', (b) => {
+  child.stdout!.on('data', (b) => {
     text += b;
     if (text.length > 32_000_000) abort();
   });
-  child.stderr.on('data', (b) => {
+  child.stderr!.on('data', (b) => {
     stderr = (stderr + b).slice(-4000);
   });
   try {

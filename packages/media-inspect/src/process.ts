@@ -1,4 +1,51 @@
-import { spawn } from 'node:child_process';
+import {
+  spawn,
+  type ChildProcess,
+  type SpawnOptions,
+} from 'node:child_process';
+import { join } from 'node:path';
+
+/** Isolate owned media descendants on POSIX so cancellation can stop the group. */
+export function spawnMediaProcess(
+  command: string,
+  args: string[],
+  options: SpawnOptions,
+): ChildProcess {
+  return spawn(command, args, {
+    ...options,
+    shell: false,
+    detached: process.platform !== 'win32',
+    windowsHide: true,
+  });
+}
+
+const terminating = new WeakSet<ChildProcess>();
+
+/** Stop the owned process tree, including children of a Windows launcher shim. */
+export function terminateMediaProcess(child: ChildProcess): void {
+  const pid = child.pid;
+  if (!pid || terminating.has(child)) return;
+  terminating.add(child);
+  if (process.platform !== 'win32') {
+    try {
+      process.kill(-pid, 'SIGKILL');
+    } catch {
+      child.kill('SIGKILL');
+    }
+    return;
+  }
+  const systemRoot =
+    process.env.SystemRoot ?? process.env.windir ?? 'C:\\Windows';
+  const killer = spawn(
+    join(systemRoot, 'System32', 'taskkill.exe'),
+    ['/PID', String(pid), '/T', '/F'],
+    { shell: false, windowsHide: true, stdio: 'ignore' },
+  );
+  killer.on('error', () => child.kill('SIGKILL'));
+  killer.on('close', (code) => {
+    if (code !== 0 && child.exitCode === null) child.kill('SIGKILL');
+  });
+}
 export class MediaError extends Error {
   constructor(
     public code: string,
@@ -38,8 +85,7 @@ export function run(
       limit <= 0
     )
       return reject(new MediaError('media.config', 'Invalid process bounds'));
-    const child = spawn(executable(tool), args, {
-      shell: false,
+    const child = spawnMediaProcess(executable(tool), args, {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let fault: Error | undefined,
@@ -48,7 +94,7 @@ export function run(
       err: Buffer[] = [];
     const stop = (e: Error) => {
       fault ??= e;
-      child.kill('SIGKILL');
+      terminateMediaProcess(child);
     };
     const cancel = () =>
       stop(new MediaError('media.cancelled', 'Media operation cancelled'));
@@ -58,7 +104,7 @@ export function run(
       timeout,
     );
     options.signal?.addEventListener('abort', cancel, { once: true });
-    child.stdout.on('data', (b: Buffer) => {
+    child.stdout!.on('data', (b: Buffer) => {
       bytes += b.length;
       if (bytes > limit)
         stop(
@@ -69,7 +115,7 @@ export function run(
         );
       else out.push(b);
     });
-    child.stderr.on('data', (b: Buffer) => {
+    child.stderr!.on('data', (b: Buffer) => {
       bytes += b.length;
       if (bytes > limit)
         stop(new MediaError('media.limit', 'Media diagnostic limit exceeded'));

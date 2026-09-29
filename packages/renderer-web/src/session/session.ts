@@ -320,14 +320,28 @@ export class WebRendererSession implements RendererSession {
     } finally {
       clearTimeout(cleanupTimer);
     }
-    this.decodeTimes =
-      (await this.page
-        ?.evaluate(() => window.sceneWireMediaMetrics?.() ?? [])
-        .catch(() => [])) ?? [];
-    this.mediaSequence =
-      (await this.page
-        ?.evaluate(() => window.sceneWireMediaSequenceMetrics?.())
-        .catch(() => undefined)) ?? this.mediaSequence;
+    // Telemetry must never delay resource ownership cleanup on an unresponsive
+    // renderer (for example a synchronous infinite mount loop).
+    let metricsTimer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const snapshot = await Promise.race([
+        this.page?.evaluate(() => ({
+          decodeTimes: window.sceneWireMediaMetrics?.() ?? [],
+          mediaSequence: window.sceneWireMediaSequenceMetrics?.(),
+        })),
+        new Promise<undefined>((resolve) => {
+          metricsTimer = setTimeout(() => resolve(undefined), 200);
+        }),
+      ]);
+      if (snapshot) {
+        this.decodeTimes = snapshot.decodeTimes;
+        this.mediaSequence = snapshot.mediaSequence ?? this.mediaSequence;
+      }
+    } catch {
+      /* Missing telemetry cannot prevent browser and resource host shutdown. */
+    } finally {
+      clearTimeout(metricsTimer);
+    }
     await this.captureBackend.dispose?.();
     await this.browser?.close().catch(() => {});
     await this.resourceHost.dispose();

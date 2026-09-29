@@ -7,7 +7,7 @@ import {
   existsSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { resolve, join, relative } from 'node:path';
+import { resolve, join, relative, dirname, sep } from 'node:path';
 const repository = realpathSync(process.cwd()),
   artifacts = resolve('.build/npm');
 const report = JSON.parse(readFileSync(join(artifacts, 'manifest.json')));
@@ -16,18 +16,27 @@ const consumer = realpathSync(
 );
 if (!relative(repository, realpathSync(consumer)).startsWith('..'))
   throw Error('Consumer must be outside checkout');
+const npmCli = [
+  join(dirname(process.execPath), 'node_modules/npm/bin/npm-cli.js'),
+  resolve(dirname(process.execPath), '../lib/node_modules/npm/bin/npm-cli.js'),
+].find(existsSync);
+if (!npmCli) throw Error('Cannot locate installed Node npm CLI');
 const command = (file, args) =>
-  execFileSync(file, args, {
-    cwd: consumer,
-    encoding: 'utf8',
-    env: {
-      ...process.env,
-      NODE_PATH: '',
-      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1',
+  execFileSync(
+    file === 'npm' ? process.execPath : file,
+    file === 'npm' ? [npmCli, ...args] : args,
+    {
+      cwd: consumer,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        NODE_PATH: '',
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1',
+      },
+      timeout: 180000,
+      maxBuffer: 16 * 1024 * 1024,
     },
-    timeout: 180000,
-    maxBuffer: 16 * 1024 * 1024,
-  });
+  );
 writeFileSync(
   join(consumer, 'package.json'),
   JSON.stringify({
@@ -56,7 +65,7 @@ writeFileSync(
     libraries
       .map(
         (p) =>
-          `if(!realpathSync(fileURLToPath(import.meta.resolve('${p.name}'))).startsWith(${JSON.stringify(consumer + '/node_modules/')}))throw Error('Repository resolution');await import('${p.name}');`,
+          `if(!realpathSync(fileURLToPath(import.meta.resolve('${p.name}'))).startsWith(${JSON.stringify(join(consumer, 'node_modules') + sep)}))throw Error('Repository resolution');await import('${p.name}');`,
       )
       .join('\n') +
     "\nconsole.log('All 19 Node ESM roots PASS');",
@@ -84,9 +93,14 @@ writeFileSync(
     include: ['consumer.ts'],
   }),
 );
-command(join(consumer, 'node_modules/.bin/tsc'), ['-p', 'tsconfig.json']);
-const bin = join(consumer, 'node_modules/.bin/scenewire');
-const initialEngines = JSON.parse(command(bin, ['engines']));
+command(process.execPath, [
+  join(consumer, 'node_modules/typescript/bin/tsc'),
+  '-p',
+  'tsconfig.json',
+]);
+const cli = join(consumer, 'node_modules/@scenewirejs/cli/dist/scenewire.js');
+const cliCommand = (args) => command(process.execPath, [cli, ...args]);
+const initialEngines = JSON.parse(cliCommand(['engines', '--json']));
 for (const id of ['web-react', 'web-pixi', 'web-three'])
   if (initialEngines.find((e) => e.id === id)?.availability !== 'unavailable')
     throw Error(`Unexpected optional engine before install: ${id}`);
@@ -150,12 +164,12 @@ const project = {
 };
 const renders = [];
 for (const engine of ['web-dom']) {
-  command(bin, ['scaffold', engine, 'composition']);
+  cliCommand(['scaffold', engine, 'composition']);
   writeFileSync(join(consumer, 'project.json'), JSON.stringify(project));
   renders.push({
     engine,
     command: ['scenewire', 'render-check', 'project.json'],
-    result: JSON.parse(command(bin, ['render-check', 'project.json'])),
+    result: JSON.parse(cliCommand(['render-check', 'project.json'])),
   });
 }
 const optional = [
@@ -171,19 +185,19 @@ command('npm', [
   '--no-fund',
   ...optional,
 ]);
-const engines = JSON.parse(command(bin, ['engines']));
+const engines = JSON.parse(cliCommand(['engines', '--json']));
 for (const engine of ['web-react', 'web-pixi', 'web-three']) {
   if (engines.find((e) => e.id === engine)?.availability !== 'available')
     throw Error(`Missing optional engine ${engine}`);
   const directory = engine;
-  command(bin, ['scaffold', engine, directory]);
+  cliCommand(['scaffold', engine, directory]);
   const next = structuredClone(project);
   next.assets[0].src = `${directory}/composition.json`;
   writeFileSync(join(consumer, 'project.json'), JSON.stringify(next));
   renders.push({
     engine,
     command: ['scenewire', 'render-check', 'project.json'],
-    result: JSON.parse(command(bin, ['render-check', 'project.json'])),
+    result: JSON.parse(cliCommand(['render-check', 'project.json'])),
   });
 }
 for (const p of report.packages) {

@@ -1,5 +1,6 @@
 import type { WebRenderOptions } from '../contracts';
 import type { RenderRange, RenderProgress } from '@scenewirejs/renderer-core';
+import type { EncoderProgress } from './encoder';
 export interface ExportOptions extends WebRenderOptions {
   output: string;
   range?: RenderRange;
@@ -15,4 +16,6 @@ export interface ExportOptions extends WebRenderOptions {
     chunk: string,
   ): Promise<void> | void;
   renderTimeoutMs?: number;
+  audioStallTimeoutMs?: number;
+  onAudioProgress?(progress: EncoderProgress): void;
 }

@@ -1,3 +1,4 @@
+import { mediaRangeDetails } from '../assets/video';
 import { isDefaultTransform } from '../common';
 import { type ProjectShape } from './schema';
 import { z } from 'zod';
@@ -12,17 +13,38 @@ import { type CueTarget } from './../narration';
 export function validateProject(p: ProjectShape, ctx: z.RefinementCtx) {
   const index = buildProjectIndex(p);
   for (const issue of collectVideoDiagnostics(p, index.assetById))
-    ctx.addIssue({ code: 'custom', message: issue.code, path: issue.path });
+    ctx.addIssue({
+      code: 'custom',
+      message: issue.message,
+      path: issue.path,
+      params: { code: issue.code, details: issue.details },
+    });
 
-  const seen = new Set<string>();
-  const checkId = (value: string) => {
-    if (seen.has(value))
-      ctx.addIssue({ code: 'custom', message: `Duplicate ID: ${value}` });
-    seen.add(value);
+  const diagnostic = (
+    code: string,
+    path: (string | number)[],
+    message: string,
+    details: Record<string, unknown>,
+  ) =>
+    ctx.addIssue({ code: 'custom', path, message, params: { code, details } });
+  const seen = new Map<string, { path: (string | number)[]; kind: string }>();
+  const checkId = (value: string, path: (string | number)[], kind: string) => {
+    const first = seen.get(value);
+    if (first)
+      diagnostic('project.id.duplicate', path, `Duplicate ID: ${value}`, {
+        id: value,
+        firstPath: first.path,
+        duplicatePath: path,
+        firstKind: first.kind,
+        kind,
+        remediation:
+          'Assign a unique ID to one owner and update its references.',
+      });
+    else seen.set(value, { path, kind });
   };
-  checkId(p.id);
-  p.assets.forEach((a) => {
-    checkId(a.id);
+  checkId(p.id, ['id'], 'project');
+  p.assets.forEach((a, i) => {
+    checkId(a.id, ['assets', i, 'id'], 'asset');
     if (a.type === 'composition' && p.version < 7)
       ctx.addIssue({
         code: 'custom',
@@ -31,8 +53,8 @@ export function validateProject(p: ProjectShape, ctx: z.RefinementCtx) {
   });
   if (p.seed !== undefined && p.version < 7)
     ctx.addIssue({ code: 'custom', message: 'Seed requires v7' });
-  p.scenes.forEach((s) => checkId(s.id));
-  p.markers.forEach((m) => checkId(m.id));
+  p.scenes.forEach((s, i) => checkId(s.id, ['scenes', i, 'id'], 'scene'));
+  p.markers.forEach((m, i) => checkId(m.id, ['markers', i, 'id'], 'marker'));
   const end = Math.max(...p.scenes.map((s) => s.startFrame + s.durationFrames));
   if (p.camera) {
     if (p.version < 6)
@@ -110,16 +132,16 @@ export function validateProject(p: ProjectShape, ctx: z.RefinementCtx) {
         });
     });
   });
-  p.tracks.forEach((t) => {
-    checkId(t.id);
+  p.tracks.forEach((t, ti) => {
+    checkId(t.id, ['tracks', ti, 'id'], 'track');
     if (!isVisualTrack(t)) {
       if (p.version < 4 && t.clips.length)
         ctx.addIssue({
           code: 'custom',
           message: 'Audio clips require project v4',
         });
-      t.clips.forEach((c) => {
-        checkId(c.id);
+      t.clips.forEach((c, ci) => {
+        checkId(c.id, ['tracks', ti, 'clips', ci, 'id'], 'clip');
 
         const asset = index.assetById.get(c.assetId);
         if (asset && /^(blob:|data:)/i.test(asset.src))
@@ -141,17 +163,36 @@ export function validateProject(p: ProjectShape, ctx: z.RefinementCtx) {
           asset &&
           asset.type !== 'composition' &&
           asset.durationMs !== undefined &&
-          c.sourceOffsetMs + (c.durationFrames * 1000) / p.fps >
-            asset.durationMs + 0.001
+          c.durationFrames >
+            mediaRangeDetails(
+              asset.durationMs,
+              c.sourceOffsetMs,
+              1,
+              p.fps,
+              c.durationFrames,
+              true,
+            ).maxPlayableFrames
         )
-          ctx.addIssue({
-            code: 'custom',
-            message: 'Audio source range exceeds asset duration',
-          });
+          diagnostic(
+            'audio.source.range',
+            ['tracks', ti, 'clips', ci],
+            'Audio source range exceeds asset duration',
+            {
+              ...mediaRangeDetails(
+                asset.durationMs!,
+                c.sourceOffsetMs,
+                1,
+                p.fps,
+                c.durationFrames,
+                true,
+              ),
+              rounding: 'terminal-partial-frame',
+            },
+          );
       });
       return;
     }
-    t.clips.forEach((c) => {
+    t.clips.forEach((c, ci) => {
       if (c.component === 'ForeignComposition') {
         if (c.props.parameters !== undefined && p.version < 8)
           ctx.addIssue({
@@ -164,29 +205,67 @@ export function validateProject(p: ProjectShape, ctx: z.RefinementCtx) {
             c.startFrame >= s.startFrame &&
             c.startFrame + c.durationFrames <= s.startFrame + s.durationFrames,
         );
-        if (
-          p.version < 7 ||
-          !asset ||
-          asset.type !== 'composition' ||
-          !scene ||
-          t.type !== 'visual'
-        )
-          ctx.addIssue({
-            code: 'custom',
-            message:
-              'Foreign composition requires v7, a composition asset and containment in one visual scene',
-          });
+        const path = ['tracks', ti, 'clips', ci];
+        const details = {
+          clipId: c.id,
+          clipInterval: [c.startFrame, c.startFrame + c.durationFrames],
+          candidateScenes: p.scenes.map((s) => ({
+            id: s.id,
+            interval: [s.startFrame, s.startFrame + s.durationFrames],
+          })),
+        };
+        if (p.version < 7)
+          diagnostic(
+            'composition.version.required',
+            path,
+            'Foreign compositions require project version 7 or newer',
+            { ...details, remediation: 'Migrate the project explicitly.' },
+          );
+        if (!asset || asset.type !== 'composition')
+          diagnostic(
+            'composition.asset.type',
+            [...path, 'props', 'assetId'],
+            'Foreign composition requires a composition asset',
+            {
+              ...details,
+              assetId: c.props.assetId,
+              remediation: 'Reference an asset of type composition.',
+            },
+          );
+        if (!scene)
+          diagnostic(
+            'composition.scene.containment',
+            path,
+            'Foreign composition must fit entirely within one scene',
+            {
+              ...details,
+              remediation:
+                'Shorten or move the clip into one scene, or split it at the scene boundary.',
+            },
+          );
+        if (t.type !== 'visual')
+          diagnostic(
+            'composition.track.invalid',
+            path,
+            'Foreign composition requires a visual track',
+            { ...details, remediation: 'Move the clip to a visual track.' },
+          );
         if (
           c.animations.length ||
           c.motion?.length ||
           c.effects ||
           !isDefaultTransform(c.transform)
         )
-          ctx.addIssue({
-            code: 'custom',
-            message:
-              'Foreign compositions are full-stage layers; transforms/motion/effects are not supported in v0.8',
-          });
+          diagnostic(
+            'composition.full-stage.required',
+            path,
+            'Foreign compositions are full-stage layers; clip transforms, animations, motion and effects are unsupported',
+            {
+              ...details,
+              remediation:
+                'Use the default clip transform and author motion/effects inside the composition.',
+            },
+          );
       }
       if (
         p.version < 6 &&
@@ -197,7 +276,7 @@ export function validateProject(p: ProjectShape, ctx: z.RefinementCtx) {
           code: 'custom',
           message: 'Editorial components and effects require project v6',
         });
-      checkId(c.id);
+      checkId(c.id, ['tracks', ti, 'clips', ci, 'id'], 'clip');
       if (
         p.version < 5 &&
         educationComponentTypeSchema.safeParse(c.component).success
@@ -265,8 +344,8 @@ export function validateProject(p: ProjectShape, ctx: z.RefinementCtx) {
   });
   const scenes = index.sceneById;
   const clips = index.allClipIds;
-  p.narration?.segments.forEach((s) => {
-    checkId(s.id);
+  p.narration?.segments.forEach((s, si) => {
+    checkId(s.id, ['narration', 'segments', si, 'id'], 'narration');
     if (s.sceneId && !scenes.has(s.sceneId))
       ctx.addIssue({ code: 'custom', message: 'Unknown narration scene' });
     const linked = s.audioClipId
@@ -335,8 +414,8 @@ export function validateProject(p: ProjectShape, ctx: z.RefinementCtx) {
         ctx.addIssue({ code: 'custom', message: 'Unknown cue target' });
     };
     s.phraseMappings?.forEach((m) => checkTarget(m.target));
-    s.cues?.forEach((c) => {
-      checkId(c.id);
+    s.cues?.forEach((c, qi) => {
+      checkId(c.id, ['narration', 'segments', si, 'cues', qi, 'id'], 'cue');
 
       if ('targetId' in c) {
         if (!clips.has(c.targetId))

@@ -10,7 +10,11 @@ export interface EngineProfile {
   editability: 'structured' | 'parameterized-code' | 'freeform-code';
   determinism: 'strict' | 'same-environment' | 'best-effort';
   scaffoldId?: string;
+  /** Runtime requirements; authoring also requires direct imports below. */
   dependencies?: readonly string[];
+  authoringDependencies?: readonly string[];
+  /** Validated third-party compatibility ranges; owned packages bind the CLI version. */
+  authoringDependencyRanges?: Readonly<Record<string, string>>;
   requiresGpu?: boolean;
   guidance?: string;
   fallbackEngineId?: string;
@@ -18,10 +22,13 @@ export interface EngineProfile {
 export interface EngineEnvironment {
   rendererIds: readonly string[];
   dependencyIds: readonly string[];
+  authoringDependencyIds?: readonly string[];
 }
 export interface EngineCandidate extends EngineProfile {
   availability: 'defined' | 'available' | 'unavailable';
   unavailableReasons: readonly string[];
+  authoringAvailability: 'defined' | 'complete' | 'incomplete';
+  missingAuthoringDependencies: readonly string[];
 }
 /** Footage requirements are fulfilled by the host media compositor, not a graphics engine. */
 export const requiresExistingFootage = (requirements: readonly string[]) =>
@@ -57,8 +64,21 @@ export class EngineRegistry {
             .map((id) => `Missing dependency: ${id}`),
         ]
       : [];
+    const missing =
+      this.environment?.authoringDependencyIds === undefined
+        ? []
+        : (profile.authoringDependencies ?? []).filter(
+            (id) => !this.environment!.authoringDependencyIds!.includes(id),
+          );
     return {
       ...structuredClone(profile),
+      authoringAvailability:
+        this.environment?.authoringDependencyIds === undefined
+          ? 'defined'
+          : missing.length
+            ? 'incomplete'
+            : 'complete',
+      missingAuthoringDependencies: missing,
       availability: !this.environment
         ? 'defined'
         : reasons.length
@@ -257,6 +277,7 @@ export const builtinEngines: readonly EngineProfile[] = [
     editability: 'parameterized-code',
     determinism: 'same-environment',
     scaffoldId: 'web-dom',
+    authoringDependencies: ['@scenewirejs/web-runtime'],
   },
   {
     id: 'web-react',
@@ -276,6 +297,8 @@ export const builtinEngines: readonly EngineProfile[] = [
     determinism: 'same-environment',
     scaffoldId: 'web-react',
     dependencies: ['react', 'react-dom'],
+    authoringDependencies: ['react', 'react-dom', '@scenewirejs/web-runtime'],
+    authoringDependencyRanges: { react: '^19.3.0', 'react-dom': '^19.3.0' },
   },
   {
     id: 'web-pixi',
@@ -307,6 +330,8 @@ export const builtinEngines: readonly EngineProfile[] = [
     determinism: 'same-environment',
     scaffoldId: 'web-pixi',
     dependencies: ['pixi.js'],
+    authoringDependencies: ['pixi.js', '@scenewirejs/web-runtime'],
+    authoringDependencyRanges: { 'pixi.js': '^8.21.0' },
     guidance: 'docs/engine-authoring.md#web-pixi',
   },
   {
@@ -331,6 +356,8 @@ export const builtinEngines: readonly EngineProfile[] = [
     determinism: 'same-environment',
     scaffoldId: 'web-three',
     dependencies: ['three'],
+    authoringDependencies: ['three', '@scenewirejs/web-runtime'],
+    authoringDependencyRanges: { three: '^0.186.1' },
     guidance: 'docs/engine-authoring.md#web-three',
   },
 ];

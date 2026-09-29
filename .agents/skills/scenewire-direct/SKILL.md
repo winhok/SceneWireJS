@@ -5,7 +5,7 @@ description: Create a SceneWire video from a visual brief or reference with exte
 
 # Direct a video
 
-Read the brief/reference and inspect `scenewire engines`. Keep the original brief as evidence; do not add engine instructions to it. Create VisualPlan v1 with per-scene intent, selected engine, rationale, requirements and shared palette/typography/motion direction. Run `scenewire plan-check plan.json` (add `--project project.json` when sceneId is supplied).
+Read the brief/reference and inspect `scenewire engines` (use `--json` for machine parsing). Keep the original brief as evidence; do not add engine instructions to it. Create VisualPlan v1 with per-scene intent, selected engine, rationale, requirements and shared palette/typography/motion direction. Run `scenewire plan-check plan.json` (add `--project project.json` when sceneId is supplied).
 
 Prefer the cheapest sufficient engine: existing structured components first, natural DOM/CSS/SVG next; React only for useful component/state structure; GPU 2D for large object fields; true 3D only when perspective/camera/materials carry meaning. Candidates inform selection; the agent makes the final choice. Reject unavailable engines. Read [engine guidance](../../../docs/engine-authoring.md) only for selected engines.
 

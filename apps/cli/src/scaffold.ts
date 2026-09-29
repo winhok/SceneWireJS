@@ -1,18 +1,31 @@
 import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { installedEngineRegistry } from './director';
+import { createEngineRegistry } from '@scenewirejs/director-core';
 export async function scaffold(engineId: string, output: string) {
   const engine = installedEngineRegistry().getEngine(engineId);
-  if (!engine?.scaffoldId || engine.availability !== 'available')
-    throw new Error('Engine scaffold unavailable');
+  if (
+    !engine?.scaffoldId ||
+    engine.availability !== 'available' ||
+    engine.authoringAvailability === 'incomplete'
+  )
+    throw new Error(
+      `Engine scaffold unavailable. Missing authoring dependencies: ${engine?.missingAuthoringDependencies.join(' ') ?? engineId}. Install explicitly before scaffold.`,
+    );
+  return writeScaffold(engineId, output);
+}
+/** Writes starter code without installing; init reports preflight separately. */
+export async function writeScaffold(engineId: string, output: string) {
+  const engine = createEngineRegistry().getEngine(engineId);
+  if (!engine?.scaffoldId) throw new Error('Engine scaffold unavailable');
   const header = `import type { WebComposition } from '@scenewirejs/web-runtime';\n`;
   const sources: Record<string, string> = {
     'web-dom':
       header +
-      `let element: HTMLDivElement;\nexport default { mount(root) { element=document.createElement('div'); root.append(element); element.textContent='Composition'; }, seek(context) { element.style.transform=\`translateX(\${context.timeSeconds * 10}px)\`; } } satisfies WebComposition;\n`,
+      `let element: HTMLDivElement;\nexport default { mount(root) { element=document.createElement('div'); root.append(element); element.style.cssText='position:absolute;left:160px;top:280px;color:#fff;font:64px sans-serif'; element.textContent='Hello SceneWire'; }, seek(context) { element.style.transform=\`translateX(\${context.timeSeconds * 10}px)\`; } } satisfies WebComposition;\n`,
     'web-react':
       header +
-      `import {createElement} from 'react';\nimport {createRoot} from 'react-dom/client';\nimport {flushSync} from 'react-dom';\nlet view: ReturnType<typeof createRoot>;\nexport default { mount(root) {view=createRoot(root);}, seek(context) {flushSync(()=>view.render(createElement('div',null,context.frame)));}, dispose(){view.unmount();} } satisfies WebComposition;\n`,
+      `import {createElement} from 'react';\nimport {createRoot} from 'react-dom/client';\nimport {flushSync} from 'react-dom';\nlet view: ReturnType<typeof createRoot>;\nexport default { mount(root) {view=createRoot(root);}, seek(context) {flushSync(()=>view.render(createElement('div',{style:{position:'absolute',left:160,top:280,color:'#fff',font:'64px sans-serif'}},'Hello SceneWire · '+context.frame)));}, dispose(){view.unmount();} } satisfies WebComposition;\n`,
     'web-pixi':
       header +
       `import 'pixi.js/unsafe-eval';

@@ -71,3 +71,5 @@ export {
 export { DEFAULT_TRANSFORM, isDefaultTransform } from './common';
 export type NarrationSegment =
   import('./narration').NarrationDocument['segments'][number];
+export { mediaPlayableFrames, mediaRangeDetails } from './assets/video';
+export { projectDiagnostics } from './diagnostics/project';

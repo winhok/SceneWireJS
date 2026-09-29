@@ -1,0 +1,9 @@
+{
+  "provenance": "synthetic-fixture",
+  "text": "Hello SceneWire.",
+  "words": [
+    { "text": "Hello", "startMs": 100, "endMs": 700 },
+    { "text": "SceneWire.", "startMs": 800, "endMs": 1700 }
+  ],
+  "phrases": [{ "text": "Hello SceneWire.", "startMs": 100, "endMs": 1700 }]
+}

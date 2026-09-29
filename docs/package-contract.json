@@ -1,4 +1,5 @@
 {
+  "sourceCommit": "45727c7affdaba48cde3630f6db1b7a6c2c32c0b",
   "packages": {
     "@scenewirejs/audio": [
       "AssetResolver",
@@ -98,7 +99,9 @@
       "motionFromGray",
       "probe",
       "run",
+      "spawnMediaProcess",
       "tailTime",
+      "terminateMediaProcess",
       "verifyEvidence",
       "waveform",
       "waveformSvg",
@@ -366,6 +369,8 @@
       "layoutSchema",
       "localProjectReferenceSchema",
       "magnifierPropsSchema",
+      "mediaPlayableFrames",
+      "mediaRangeDetails",
       "metricPropsSchema",
       "migrateProject",
       "motionPresetSchema",
@@ -378,6 +383,7 @@
       "phraseMappingSchema",
       "phraseTimingSchema",
       "primitiveClipSchema",
+      "projectDiagnostics",
       "projectSchema",
       "resolveCompositionParameters",
       "scientificChartPropsSchema",

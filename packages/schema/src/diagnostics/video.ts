@@ -1,20 +1,34 @@
 import { localProjectReferenceSchema } from './../common';
+import { mediaRangeDetails } from './../assets/video';
 import { normalizedCropSchema } from './../assets/video';
 /** Media-specific machine diagnostics supplement strict project validation, without reading bytes. */
 export function collectVideoDiagnostics(
   input: unknown,
   assetIndex?: ReadonlyMap<unknown, unknown>,
-): { code: string; path: (string | number)[]; message: string }[] {
+): {
+  code: string;
+  path: (string | number)[];
+  message: string;
+  details?: Record<string, unknown>;
+}[] {
   const record = (v: unknown): Record<string, unknown> =>
     v !== null && typeof v === 'object' && !Array.isArray(v)
       ? (v as Record<string, unknown>)
       : {};
   const p = record(input),
     assets = Array.isArray(p.assets) ? p.assets.map(record) : [];
-  const errors: { code: string; path: (string | number)[]; message: string }[] =
-    [];
-  const issue = (code: string, path: (string | number)[]) =>
-    errors.push({ code, path, message: code });
+  const errors: {
+    code: string;
+    path: (string | number)[];
+    message: string;
+    details?: Record<string, unknown>;
+  }[] = [];
+  const issue = (
+    code: string,
+    path: (string | number)[],
+    details?: Record<string, unknown>,
+  ) =>
+    errors.push({ code, path, message: code, ...(details ? { details } : {}) });
   const assetById = assetIndex ?? new Map(assets.map((a) => [a.id, a]));
   assets.forEach((asset, i) => {
     if (asset.type !== 'video') return;
@@ -66,16 +80,38 @@ export function collectVideoDiagnostics(
       if (
         asset?.type === 'video' &&
         typeof asset.durationMs === 'number' &&
+        Number.isFinite(asset.durationMs) &&
+        asset.durationMs >= 0 &&
         typeof p.fps === 'number' &&
+        Number.isFinite(p.fps) &&
         p.fps > 0 &&
         typeof clip.durationFrames === 'number' &&
         typeof props.sourceInMs === 'number' &&
+        Number.isFinite(props.sourceInMs) &&
         typeof props.playbackRate === 'number' &&
-        props.sourceInMs +
-          (clip.durationFrames / p.fps) * 1000 * props.playbackRate >
-          asset.durationMs + 1e-6
+        Number.isFinite(props.playbackRate) &&
+        props.sourceInMs >= 0 &&
+        props.playbackRate > 0 &&
+        clip.durationFrames >
+          mediaRangeDetails(
+            asset.durationMs,
+            props.sourceInMs,
+            props.playbackRate,
+            p.fps,
+            clip.durationFrames,
+          ).maxPlayableFrames
       )
-        issue('video.source.range', path);
+        issue(
+          'video.source.range',
+          path,
+          mediaRangeDetails(
+            asset!.durationMs as number,
+            props.sourceInMs as number,
+            props.playbackRate as number,
+            p.fps as number,
+            clip.durationFrames as number,
+          ),
+        );
     });
   });
   return errors;

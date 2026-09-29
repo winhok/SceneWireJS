@@ -1,9 +1,10 @@
-import { videoDiagnostics } from '@scenewirejs/schema';
+import { projectDiagnostics } from '@scenewirejs/schema';
 import { referenceCommand } from './reference';
 import { productionCommand } from './production';
 import { validateVisualPlan } from '@scenewirejs/director-core';
-import { installedEngineRegistry } from './director';
+import { installedEngineRegistry, humanEngines } from './director';
 import { scaffold } from './scaffold';
+import { initProject, doctor, packageManager } from './onboarding';
 import { readFile, open, realpath } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { writeFile } from 'node:fs/promises';
@@ -32,6 +33,29 @@ let rendererError:
   typeof import('@scenewirejs/renderer-web').RenderError | undefined;
 async function main(args: string[]) {
   const [command, file, ...rest] = args;
+  if (command === 'init') {
+    const result = await initProject(args.slice(1));
+    if (args.includes('--json')) emit(result);
+    else
+      process.stdout.write(
+        `Created ${result.engine} project in ${result.directory}\n${result.installation === 'installed' ? 'Dependencies installed' : `Install dependencies explicitly: ${result.installCommand}`}\n${result.next.join('\n')}\n`,
+      );
+    if (result.installation === 'unresolved') process.exitCode = 1;
+    return;
+  }
+  if (command === 'doctor') {
+    if ((file && file !== '--json') || rest.length)
+      throw Error('Usage: scenewire doctor [--json]');
+    const result = await doctor();
+    if (file === '--json') emit(result);
+    else
+      process.stdout.write(
+        `SceneWire ${result.version}\nNode ${result.node}: ${result.nodeSupported ? 'supported' : 'unsupported'}\nPackage manager: ${result.packageManager ?? 'undetermined'}\nFFmpeg: ${result.ffmpeg.available ? 'available' : 'missing'}\nffprobe: ${result.ffprobe.available ? 'available' : 'missing'}\nChromium: ${result.browser.available ? 'available' : result.browser.remediation}\nProject: ${!result.project.present ? 'absent' : result.project.valid ? 'valid' : 'invalid'}\n${humanEngines(result.engines, result.packageManager ?? 'pnpm')}`,
+      );
+    if (!result.valid) process.exitCode = 1;
+    return;
+  }
+
   if (command && ['media', 'reference', 'reference-check'].includes(command)) {
     const result = await referenceCommand(command, args.slice(1));
     emit(result);
@@ -55,8 +79,17 @@ async function main(args: string[]) {
     return;
   }
   if (command === 'engines') {
-    if (file || rest.length) throw new Error('Usage: scenewire engines');
-    return emit(installedEngineRegistry().listEngines());
+    if ((file && file !== '--json') || rest.length)
+      throw new Error('Usage: scenewire engines [--json]');
+    const engines = installedEngineRegistry().listEngines();
+    return file === '--json'
+      ? emit(engines)
+      : process.stdout.write(
+          humanEngines(
+            engines,
+            (await packageManager(process.cwd())) ?? 'pnpm',
+          ),
+        );
   }
   if (command === 'scaffold') {
     if (!file || rest.length !== 1)
@@ -88,7 +121,7 @@ async function main(args: string[]) {
       'Usage: scenewire inspect|inspect-scene|inspect-clip|validate|patch <project.json> ...',
     );
   const projectText = await readFile(file, 'utf8');
-  const mediaIssues = videoDiagnostics(JSON.parse(projectText));
+  const mediaIssues = projectDiagnostics(JSON.parse(projectText));
   if (mediaIssues.length) {
     emit({ valid: false, issues: mediaIssues });
     process.exitCode = 1;
@@ -186,6 +219,11 @@ async function main(args: string[]) {
             chunkFrames: flags.has('--chunk-frames')
               ? Number(flags.get('--chunk-frames'))
               : undefined,
+            onAudioProgress(progress) {
+              process.stderr.write(
+                `${JSON.stringify({ code: 'render.audio', ...progress })}\n`,
+              );
+            },
             onRenderProgress(progress) {
               if (
                 progress.phase !== 'render' ||

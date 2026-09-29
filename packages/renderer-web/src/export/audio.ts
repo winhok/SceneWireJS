@@ -1,7 +1,7 @@
 import { isAudioTrack, type VideoProject } from '@scenewirejs/schema';
 import type { RenderRange } from '@scenewirejs/renderer-core';
 import { localPath } from '../sandbox/paths';
-import { runEncoder } from './encoder';
+import { type EncoderObservation, runEncoder } from './encoder';
 export async function mixAndMuxProjectAudio(
   project: VideoProject,
   projectRoot: string,
@@ -9,6 +9,7 @@ export async function mixAndMuxProjectAudio(
   video: string,
   final: string,
   signal: AbortSignal,
+  observation?: Omit<EncoderObservation, 'phase' | 'durationMs'>,
 ) {
   const duration = (range.endFrame - range.startFrame) / project.fps;
   const clips = project.tracks
@@ -59,7 +60,11 @@ export async function mixAndMuxProjectAudio(
       '-y',
       final,
     );
-    await runEncoder(args, signal);
+    await runEncoder(args, signal, undefined, {
+      ...observation,
+      phase: 'audio-mux',
+      durationMs: duration * 1000,
+    });
   }
   return clips.length ? final : video;
 }
