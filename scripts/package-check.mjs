@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { resolve, relative } from 'node:path';
+import { resolve, relative, sep } from 'node:path';
 const root = process.cwd();
 const releaseVersion = JSON.parse(
   readFileSync('packages/schema/package.json', 'utf8'),
@@ -26,7 +26,7 @@ const entries = packages.map((directory) => {
       )
         throw Error(`Missing built export: ${directory} ${target}`);
   const entry = resolve(directory, 'src/index.ts');
-  if (!entry.startsWith(resolve(directory) + '/') || !existsSync(entry))
+  if (!entry.startsWith(resolve(directory) + sep) || !existsSync(entry))
     throw Error(`Missing package export: ${directory}`);
   return { name: metadata.name, entry };
 });
