@@ -1,5 +1,4 @@
 {
-  "sourceCommit": "45727c7affdaba48cde3630f6db1b7a6c2c32c0b",
   "packages": {
     "@scenewirejs/audio": [
       "AssetResolver",
@@ -29,6 +28,7 @@
       "mapPhrase"
     ],
     "@scenewirejs/director-core": [
+      "AuthoringDependencyDiagnostic",
       "EngineCandidate",
       "EngineEnvironment",
       "EngineProfile",
@@ -99,9 +99,7 @@
       "motionFromGray",
       "probe",
       "run",
-      "spawnMediaProcess",
       "tailTime",
-      "terminateMediaProcess",
       "verifyEvidence",
       "waveform",
       "waveformSvg",
@@ -217,6 +215,8 @@
       "ChunkPerformance",
       "FrameAdapter",
       "FrameContext",
+      "FrameDiagnostic",
+      "JsonSerializableValue",
       "RenderChunk",
       "RenderPerformanceReport",
       "RenderPlan",
@@ -228,6 +228,7 @@
       "RendererEnvironment",
       "RendererRegistry",
       "RendererSession",
+      "ResolvedFrameDiagnostic",
       "WorkerPerformance",
       "assertCanonicalFrameContext",
       "createRenderPlan",
@@ -235,6 +236,7 @@
       "validateRenderRange"
     ],
     "@scenewirejs/renderer-web": [
+      "FrameDiagnosticRange",
       "RenderDiagnostic",
       "RenderError",
       "WebRenderOptions",
@@ -415,6 +417,7 @@
       "CompositionInitContext",
       "FrameAdapter",
       "FrameContext",
+      "FrameDiagnostic",
       "WebComposition",
       "createFrameStore",
       "createPixiFrameAdapter",
@@ -424,6 +427,7 @@
     ]
   },
   "subpaths": {
-    "@scenewirejs/renderer-web": [".", "./export", "./preview"]
+    "@scenewirejs/renderer-web": [".", "./export", "./preview"],
+    "@scenewirejs/media-inspect": [".", "./internal/process"]
   }
 }

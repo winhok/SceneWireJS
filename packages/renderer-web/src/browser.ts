@@ -1,9 +1,14 @@
+import { resolveFrameDiagnostics } from './frame-diagnostics';
 import type {
   WebComposition,
   CompositionInitContext,
 } from '@scenewirejs/web-runtime';
 import { seededRandom } from '@scenewirejs/web-runtime';
-import type { FrameAdapter, FrameContext } from '@scenewirejs/renderer-core';
+import type {
+  FrameAdapter,
+  FrameContext,
+  FrameDiagnostic,
+} from '@scenewirejs/renderer-core';
 export async function mountComposition(
   composition: WebComposition,
   init: Omit<CompositionInitContext, 'registerAdapter' | 'ready' | 'random'>,
@@ -45,6 +50,9 @@ export async function mountComposition(
     );
   }
   await ready();
+  const frameDiagnostics =
+    !!composition.validateFrame ||
+    adapters.some((adapter) => !!adapter.validateFrame);
   let disposed = false;
   async function dispose() {
     if (disposed) return;
@@ -55,7 +63,7 @@ export async function mountComposition(
   addEventListener('message', async (event) => {
     if (event.source !== parent) return;
     if (event.data?.type === 'scenewire:hello') {
-      parent.postMessage({ type: 'scenewire:ready' }, '*');
+      parent.postMessage({ type: 'scenewire:ready', frameDiagnostics }, '*');
       return;
     }
     if (event.data?.type === 'scenewire:dispose') {
@@ -101,8 +109,25 @@ export async function mountComposition(
       }
       await ready();
       for (const adapter of adapters) await adapter.flush?.();
+      const diagnostics: FrameDiagnostic[] = [];
+      if (composition.validateFrame)
+        diagnostics.push(...(await composition.validateFrame(frozen)));
+      for (const adapter of adapters)
+        if (adapter.validateFrame)
+          diagnostics.push(...(await adapter.validateFrame(frozen)));
       root.getBoundingClientRect();
-      parent.postMessage({ type: 'scenewire:seeked', requestId }, '*');
+      parent.postMessage(
+        {
+          type: 'scenewire:seeked',
+          requestId,
+          diagnostics: resolveFrameDiagnostics(
+            diagnostics,
+            frozen,
+            init.compositionId,
+          ),
+        },
+        '*',
+      );
     } catch (error) {
       parent.postMessage(
         { type: 'scenewire:seeked', requestId, error: String(error) },
@@ -113,5 +138,5 @@ export async function mountComposition(
   addEventListener('pagehide', () => {
     void dispose();
   });
-  parent.postMessage({ type: 'scenewire:ready' }, '*');
+  parent.postMessage({ type: 'scenewire:ready', frameDiagnostics }, '*');
 }

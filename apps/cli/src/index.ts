@@ -2,6 +2,11 @@ import { projectDiagnostics } from '@scenewirejs/schema';
 import { referenceCommand } from './reference';
 import { productionCommand } from './production';
 import { validateVisualPlan } from '@scenewirejs/director-core';
+import {
+  frameTimeoutFlags,
+  timeoutOptions,
+  selectedFrames,
+} from './render-options';
 import { installedEngineRegistry, humanEngines } from './director';
 import { scaffold } from './scaffold';
 import { initProject, doctor, packageManager } from './onboarding';
@@ -144,8 +149,14 @@ async function main(args: string[]) {
       const flag = rest[index]!,
         value = rest[index + 1];
       if (
-        !(
-          command === 'capture'
+        ![
+          ...(command === 'preview'
+            ? ['--prepare-timeout-ms']
+            : frameTimeoutFlags),
+          ...(command === 'render'
+            ? ['--render-timeout-ms', '--audio-stall-timeout-ms']
+            : []),
+          ...(command === 'capture'
             ? ['--frame', '--output']
             : command === 'contact-sheet'
               ? ['--frames', '--output']
@@ -160,8 +171,8 @@ async function main(args: string[]) {
                       '--workers',
                       '--chunk-frames',
                     ]
-                  : ['--output', '--profile']
-        ).includes(flag) ||
+                  : ['--output', '--profile']),
+        ].includes(flag) ||
         value === undefined ||
         flags.has(flag)
       )
@@ -173,11 +184,13 @@ async function main(args: string[]) {
       !['preview', 'deterministic-export'].includes(flags.get('--profile')!)
     )
       throw new Error('Invalid render profile');
+    const timeouts = timeoutOptions(flags);
     const controller = new AbortController(),
       cancel = () => controller.abort();
     process.once('SIGINT', cancel);
     process.once('SIGTERM', cancel);
     const options = {
+      ...timeouts,
       project,
       projectRoot: dirname(resolve(file)),
       signal: controller.signal,
@@ -190,7 +203,7 @@ async function main(args: string[]) {
           await renderCheck(
             options,
             flags.has('--frames')
-              ? flags.get('--frames')!.split(',').map(Number)
+              ? selectedFrames(flags.get('--frames')!)
               : undefined,
           ),
         );
@@ -240,7 +253,7 @@ async function main(args: string[]) {
       const frames =
         command === 'capture'
           ? [Number(flags.get('--frame'))]
-          : (flags.get('--frames') ?? '').split(',').map(Number);
+          : selectedFrames(flags.get('--frames') ?? '');
       if (
         (command === 'capture' && !flags.has('--frame')) ||
         !frames.length ||

@@ -1,4 +1,8 @@
-import type { FrameContext, RenderRange } from '@scenewirejs/renderer-core';
+import type {
+  FrameContext,
+  RenderRange,
+  ResolvedFrameDiagnostic,
+} from '@scenewirejs/renderer-core';
 export interface MediaSequenceMetrics {
   sequentialSamples: number;
   randomSamples: number;
@@ -6,9 +10,12 @@ export interface MediaSequenceMetrics {
 }
 export interface SceneWireHostBridge {
   sceneWireReady(): boolean;
-  sceneWireSeek(
-    context: FrameContext,
-  ): Promise<{ mediaDecodeMs: number; paintFlushMs: number }>;
+  sceneWireFrameDiagnostics(): boolean;
+  sceneWireSeek(context: FrameContext): Promise<{
+    mediaDecodeMs: number;
+    paintFlushMs: number;
+    diagnostics: ResolvedFrameDiagnostic[];
+  }>;
   sceneWireBeginMediaRange(range: RenderRange | null): Promise<void>;
   sceneWireDispose(): Promise<void>;
   sceneWireMediaMetrics(): number[];

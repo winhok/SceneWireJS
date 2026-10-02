@@ -4,35 +4,32 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
-  source:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            node: 22.12.0
-          - os: ubuntu-22.04
-            node: 22.12.0
-          - os: windows-latest
-            node: 22.12.0
-          - os: ubuntu-latest
-            node: 26.7.0
-    runs-on: ${{ matrix.os }}
+  primary:
+    name: Primary / Ubuntu 24 / Node 22
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
     env:
       NODE_PATH: ''
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: ${{ matrix.node }}
+          persist-credentials: false
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
-          version: 12.6.0
+          version: 12.8.1
           run_install: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm build
@@ -41,11 +38,49 @@ jobs:
       - run: pnpm package:check
       - run: node apps/cli/dist/scenewire.js engines
       - name: Install renderer prerequisites
-        if: matrix.os == 'ubuntu-22.04' && matrix.node == '22.12.0'
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
           pnpm --filter @scenewirejs/renderer-web exec playwright install --with-deps chromium
+      - name: Allow sandboxing for exact managed Linux browser paths
+        run: |
+          profile_file="$RUNNER_TEMP/scenewire-managed-chromium"
+          echo 'abi <abi/4.0>,' > "$profile_file"
+          echo 'include <tunables/global>' >> "$profile_file"
+          index=0
+          while IFS= read -r browser_path; do
+            index=$((index + 1))
+            printf 'profile scenewire-managed-chromium-%s "%s" flags=(unconfined) {\n  userns,\n}\n' "$index" "$browser_path" >> "$profile_file"
+          done < <(find "$HOME/.cache/ms-playwright" -type f \( -name chrome -o -name chrome-headless-shell \))
+          test "$index" -gt 0
+          cat "$profile_file"
+          sudo install -m 0644 "$profile_file" /etc/apparmor.d/scenewire-managed-chromium
+          sudo apparmor_parser -r /etc/apparmor.d/scenewire-managed-chromium
       - name: Packed consumer and four installed engines
-        if: matrix.os == 'ubuntu-22.04' && matrix.node == '22.12.0'
         run: pnpm package:smoke
+
+  compatibility:
+    name: Compatibility / Ubuntu / Node 26
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_PATH: ''
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 12.8.1
+          run_install: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26.7.0
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm package:check
+      - run: node apps/cli/dist/scenewire.js engines

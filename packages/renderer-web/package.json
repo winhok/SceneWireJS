@@ -1,6 +1,6 @@
 {
   "name": "@scenewirejs/renderer-web",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0",
   "type": "module",
   "exports": {
     ".": {
@@ -20,21 +20,22 @@
     }
   },
   "dependencies": {
-    "@scenewirejs/media-inspect": "workspace:*",
-    "@scenewirejs/renderer-core": "workspace:*",
-    "@scenewirejs/web-runtime": "workspace:*",
-    "@scenewirejs/schema": "workspace:*",
-    "@scenewirejs/runtime": "workspace:*",
-    "@scenewirejs/renderer-canvas": "workspace:*",
     "@scenewirejs/compiler": "workspace:*",
-    "@scenewirejs/domain-developer": "workspace:*",
-    "@scenewirejs/domain-education": "workspace:*",
-    "@scenewirejs/domain-editorial": "workspace:*",
-    "vite": "^8.3.1",
     "@scenewirejs/director-core": "workspace:*",
+    "@scenewirejs/domain-developer": "workspace:*",
+    "@scenewirejs/domain-editorial": "workspace:*",
+    "@scenewirejs/domain-education": "workspace:*",
+    "@scenewirejs/media-inspect": "workspace:*",
+    "@scenewirejs/renderer-canvas": "workspace:*",
+    "@scenewirejs/renderer-core": "workspace:*",
+    "@scenewirejs/runtime": "workspace:*",
+    "@scenewirejs/schema": "workspace:*",
+    "@scenewirejs/web-runtime": "workspace:*",
+    "@types/node": "^26.6.3",
+    "acorn": "^8.18.0",
     "mediabunny": "^1.60.0",
     "playwright": "^1.63.0",
-    "@types/node": "^26.6.3"
+    "vite": "^8.3.1"
   },
   "files": [
     "dist/"
@@ -51,9 +52,9 @@
     "directory": "packages/renderer-web"
   },
   "peerDependencies": {
+    "pixi.js": "^8.21.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "pixi.js": "^8.21.0",
     "three": "^0.186.1"
   },
   "peerDependenciesMeta": {

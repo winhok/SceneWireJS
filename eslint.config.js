@@ -6,6 +6,11 @@ export default defineConfig(
   },
   ...tseslint.configs.recommended,
   {
+    languageOptions: {
+      parserOptions: { tsconfigRootDir: import.meta.dirname },
+    },
+  },
+  {
     files: [
       'apps/**/*.{ts,tsx}',
       'packages/**/*.{ts,tsx}',

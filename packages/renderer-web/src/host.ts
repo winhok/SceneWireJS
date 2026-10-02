@@ -14,7 +14,10 @@ import {
   drawCanvasOverlay,
 } from '@scenewirejs/renderer-canvas';
 import { isVisualTrack, type VideoProject } from '@scenewirejs/schema';
-import type { FrameContext } from '@scenewirejs/renderer-core';
+import type {
+  FrameContext,
+  ResolvedFrameDiagnostic,
+} from '@scenewirejs/renderer-core';
 const registry = [
   ...createPrimitiveRegistry(),
   ...createDeveloperRegistry(),
@@ -54,14 +57,22 @@ export async function mountHost(
   let counter = 0;
   const frames = [...document.querySelectorAll('iframe')];
   const ready = new Set<Window>();
+  const validators = new Set<Window>();
   const pending = new Map<
     number,
-    { source: Window; resolve(): void; reject(error: Error): void }
+    {
+      source: Window;
+      resolve(diagnostics: ResolvedFrameDiagnostic[]): void;
+      reject(error: Error): void;
+    }
   >();
   addEventListener('message', (event) => {
     if (!frames.some((frame) => frame.contentWindow === event.source)) return;
-    if (event.data?.type === 'scenewire:ready')
+    if (event.data?.type === 'scenewire:ready') {
       ready.add(event.source as Window);
+      if (event.data.frameDiagnostics === true)
+        validators.add(event.source as Window);
+    }
     if (
       event.data?.type === 'scenewire:seeked' ||
       event.data?.type === 'scenewire:disposed'
@@ -70,7 +81,7 @@ export async function mountHost(
       if (!request || request.source !== event.source) return;
       pending.delete(event.data.requestId);
       if (event.data.error) request.reject(new Error(event.data.error));
-      else request.resolve();
+      else request.resolve(event.data.diagnostics ?? []);
     }
   });
   const clips = project.tracks
@@ -89,6 +100,7 @@ export async function mountHost(
         mediaReady && frames.every((frame) => ready.has(frame.contentWindow!))
       );
     },
+    sceneWireFrameDiagnostics: () => validators.size > 0,
     sceneWireMediaMetrics: () => [...media.decodeMs],
     sceneWireMediaSequenceMetrics: () => ({
       sequentialSamples: media.sequentialSamples,
@@ -119,12 +131,13 @@ export async function mountHost(
       await Promise.all(
         frames.map((iframe) => {
           const requestId = ++counter;
-          const promise = new Promise<void>((resolve, reject) =>
-            pending.set(requestId, {
-              source: iframe.contentWindow!,
-              resolve,
-              reject,
-            }),
+          const promise = new Promise<ResolvedFrameDiagnostic[]>(
+            (resolve, reject) =>
+              pending.set(requestId, {
+                source: iframe.contentWindow!,
+                resolve,
+                reject,
+              }),
           );
           iframe.contentWindow!.postMessage(
             { type: 'scenewire:dispose', requestId },
@@ -135,6 +148,7 @@ export async function mountHost(
       );
     },
     sceneWireSeek: async (context: FrameContext) => {
+      const diagnostics: ResolvedFrameDiagnostic[] = [];
       const decodeBefore = media.totalDecodeMs;
       await mediaPrepared;
       let graph = evaluateAtFrame(compiled, context.frame);
@@ -175,19 +189,20 @@ export async function mountHost(
         iframe.style.display = visible ? 'block' : 'none';
         if (!visible) continue;
         const requestId = ++counter;
-        const promise = new Promise<void>((resolve, reject) =>
-          pending.set(requestId, {
-            source: iframe.contentWindow!,
-            resolve,
-            reject,
-          }),
+        const promise = new Promise<ResolvedFrameDiagnostic[]>(
+          (resolve, reject) =>
+            pending.set(requestId, {
+              source: iframe.contentWindow!,
+              resolve,
+              reject,
+            }),
         );
         iframe.contentWindow!.postMessage(
           { type: 'scenewire:seek', requestId, context },
           '*',
         );
         try {
-          await promise;
+          diagnostics.push(...(await promise));
         } catch (error) {
           throw new Error(`${clip.props.assetId}: ${String(error)}`);
         }
@@ -200,6 +215,7 @@ export async function mountHost(
         requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
       );
       return {
+        diagnostics,
         mediaDecodeMs: media.totalDecodeMs - decodeBefore,
         paintFlushMs: performance.now() - paintStart,
       };

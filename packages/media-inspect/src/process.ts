@@ -60,11 +60,15 @@ export interface RunOptions {
   maxBytes?: number;
 }
 export function executable(tool: 'ffmpeg' | 'ffprobe') {
-  return (
-    process.env[
-      tool === 'ffmpeg' ? 'SCENEWIRE_FFMPEG_PATH' : 'SCENEWIRE_FFPROBE_PATH'
-    ] || tool
-  );
+  const key =
+    tool === 'ffmpeg' ? 'SCENEWIRE_FFMPEG_PATH' : 'SCENEWIRE_FFPROBE_PATH';
+  const configured = process.env[key];
+  if (configured !== undefined && !configured.trim())
+    throw new MediaError(
+      'media.executable',
+      `${key} must name an executable; unset it to use PATH`,
+    );
+  return configured ?? tool;
 }
 export function run(
   tool: 'ffmpeg' | 'ffprobe',

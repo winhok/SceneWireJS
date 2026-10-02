@@ -1,3 +1,4 @@
+import { portableAssets, portableResourcePath } from './portable-assets';
 import { writeFile } from 'node:fs/promises';
 import { frameContext } from '@scenewirejs/renderer-core';
 import { WebRendererSession, type WebRenderOptions } from './index';
@@ -18,51 +19,36 @@ export async function writeDebugPreview(
     await session.prepare();
     const resources = await session.previewResources();
     const origin = session.resourceOrigin;
-    const inlineAssets = (code: string) => {
-      for (const [path, bytes] of resources)
-        if (!/\.(js|html|css)$/.test(path)) {
-          const type = path.startsWith('/media/')
-            ? path.endsWith('.webm')
-              ? 'video/webm'
-              : 'video/mp4'
-            : path.endsWith('.svg')
-              ? 'image/svg+xml'
-              : path.endsWith('.woff2')
-                ? 'font/woff2'
-                : path.endsWith('.woff')
-                  ? 'font/woff'
-                  : 'image/png';
-          const uri = `data:${type};base64,${bytes.toString('base64')}`;
-          code = code
-            .replaceAll(origin + path, uri)
-            .replaceAll('"/' + path.split('/').at(-1) + '"', '"' + uri + '"')
-            .replaceAll("'/" + path.split('/').at(-1) + "'", "'" + uri + "'");
-        }
-      return code;
-    };
-    const inlineDocument = (html: string) =>
-      html
+    const inlineDocument = (html: string, base: string) =>
+      portableAssets(html, base, origin, resources)
         .replace(
           /<meta http-equiv="Content-Security-Policy"[^>]*>/,
           `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src data:; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src data:; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">`,
         )
         .replace(
           /<link rel="stylesheet" href="([^"]+)"\s*>/g,
-          (_, url: string) =>
-            `<style>${inlineAssets(resources.get(url.replace(origin, ''))!.toString()).replaceAll('</style', '<\\/style')}</style>`,
+          (_, ref: string) => {
+            const path = portableResourcePath(ref, base, origin);
+            const bytes = resources.get(path);
+            if (!bytes) throw Error(`Missing preview stylesheet: ${path}`);
+            return `<style>${portableAssets(bytes.toString(), path, origin, resources).replaceAll('</style', '<\\/style')}</style>`;
+          },
         )
-        .replace(/<script src="([^"]+)"><\/script>/g, (_, url: string) =>
-          script(
-            inlineAssets(resources.get(url.replace(origin, ''))!.toString()),
-          ),
-        );
+        .replace(/<script src="([^"]+)"><\/script>/g, (_, ref: string) => {
+          const path = portableResourcePath(ref, base, origin);
+          const bytes = resources.get(path);
+          if (!bytes) throw Error(`Missing preview script: ${path}`);
+          return script(
+            portableAssets(bytes.toString(), path, origin, resources),
+          );
+        });
     let host = resources.get('/index.html')!.toString();
     host = host.replace(
       /src="(\/composition\/[^\"]+\/index.html)"/g,
       (_, path: string) =>
-        `srcdoc="${escapeAttribute(inlineDocument(resources.get(path)!.toString()))}"`,
+        `srcdoc="${escapeAttribute(inlineDocument(resources.get(path)!.toString(), path))}"`,
     );
-    host = inlineDocument(host);
+    host = inlineDocument(host, '/index.html');
     // The host permits its sandbox frames; each child keeps frame-src none and an opaque origin.
     host = host.replace("frame-src 'none'", "frame-src 'self' data: blob:");
     const { project } = options,

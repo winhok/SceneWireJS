@@ -19,16 +19,27 @@ export interface EngineProfile {
   guidance?: string;
   fallbackEngineId?: string;
 }
+export interface AuthoringDependencyDiagnostic {
+  id: string;
+  status: 'missing' | 'unresolvable' | 'incompatible' | 'complete';
+  declared?: string;
+  installed?: string;
+  required?: string;
+}
 export interface EngineEnvironment {
   rendererIds: readonly string[];
   dependencyIds: readonly string[];
   authoringDependencyIds?: readonly string[];
+  authoringDiagnostics?: Readonly<
+    Record<string, AuthoringDependencyDiagnostic>
+  >;
 }
 export interface EngineCandidate extends EngineProfile {
   availability: 'defined' | 'available' | 'unavailable';
   unavailableReasons: readonly string[];
   authoringAvailability: 'defined' | 'complete' | 'incomplete';
   missingAuthoringDependencies: readonly string[];
+  authoringDiagnostics?: readonly AuthoringDependencyDiagnostic[];
 }
 /** Footage requirements are fulfilled by the host media compositor, not a graphics engine. */
 export const requiresExistingFootage = (requirements: readonly string[]) =>
@@ -70,8 +81,16 @@ export class EngineRegistry {
         : (profile.authoringDependencies ?? []).filter(
             (id) => !this.environment!.authoringDependencyIds!.includes(id),
           );
+    const diagnostics = (profile.authoringDependencies ?? []).flatMap((id) =>
+      this.environment?.authoringDiagnostics?.[id]
+        ? [this.environment.authoringDiagnostics[id]!]
+        : [],
+    );
     return {
       ...structuredClone(profile),
+      ...(diagnostics.length
+        ? { authoringDiagnostics: structuredClone(diagnostics) }
+        : {}),
       authoringAvailability:
         this.environment?.authoringDependencyIds === undefined
           ? 'defined'

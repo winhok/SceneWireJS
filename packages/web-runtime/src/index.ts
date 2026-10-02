@@ -1,6 +1,14 @@
 export * from './adapters';
-import type { FrameAdapter, FrameContext } from '@scenewirejs/renderer-core';
-export type { FrameAdapter, FrameContext } from '@scenewirejs/renderer-core';
+import type {
+  FrameAdapter,
+  FrameContext,
+  FrameDiagnostic,
+} from '@scenewirejs/renderer-core';
+export type {
+  FrameAdapter,
+  FrameContext,
+  FrameDiagnostic,
+} from '@scenewirejs/renderer-core';
 export interface CompositionInitContext {
   compositionId: string;
   width: number;
@@ -19,6 +27,9 @@ export interface WebComposition {
     context: CompositionInitContext,
   ): void | Promise<void>;
   seek(context: FrameContext): void | Promise<void>;
+  validateFrame?(
+    context: FrameContext,
+  ): readonly FrameDiagnostic[] | Promise<readonly FrameDiagnostic[]>;
   dispose?(): void | Promise<void>;
 }
 export function seededRandom(

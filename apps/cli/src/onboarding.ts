@@ -320,15 +320,35 @@ export async function initProject(args: string[]) {
   };
 }
 export async function doctor(directory = process.cwd()) {
-  const tool = async (name: string) => {
+  const tool = async (name: 'ffmpeg' | 'ffprobe') => {
+    const { run, executable } = await import('@scenewirejs/media-inspect');
+    const source =
+      process.env[`SCENEWIRE_${name.toUpperCase()}_PATH`] !== undefined
+        ? 'configured'
+        : 'PATH';
+    const configuredExecutable =
+      process.env[`SCENEWIRE_${name.toUpperCase()}_PATH`] ?? name;
     try {
-      const result = await execute(name, ['-version'], {
-        timeout: 5000,
-        maxBuffer: 64000,
+      const result = await run(name, ['-version'], {
+        timeoutMs: 5000,
+        maxBytes: 64000,
       });
-      return { available: true, version: result.stdout.split('\n')[0] };
-    } catch {
-      return { available: false, remediation: `Install ${name} on PATH` };
+      return {
+        available: true,
+        source,
+        executable: executable(name),
+        version: result.stdout.toString().split('\n')[0],
+      };
+    } catch (error) {
+      return {
+        available: false,
+        source,
+        executable: configuredExecutable,
+        remediation:
+          source === 'configured'
+            ? `Check SCENEWIRE_${name.toUpperCase()}_PATH; configured executable failed: ${String(error)}`
+            : `Install ${name} on PATH or set SCENEWIRE_${name.toUpperCase()}_PATH`,
+      };
     }
   };
   const [ffmpeg, ffprobe] = await Promise.all([

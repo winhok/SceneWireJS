@@ -9,6 +9,7 @@ import {
   frameContext,
   assertCanonicalFrameContext,
   type FrameContext,
+  type ResolvedFrameDiagnostic,
   type RendererSession,
 } from '@scenewirejs/renderer-core';
 import { ResourceHost, ResourceStore } from '../resources';
@@ -25,6 +26,8 @@ import { prepareResources } from './prepare';
 export class WebRendererSession implements RendererSession {
   readonly diagnostics: RenderDiagnostic[] = [];
   readonly builds: CompositionBuild[] = [];
+  readonly frameDiagnostics: ResolvedFrameDiagnostic[] = [];
+  hasFrameDiagnostics = false;
   readonly metrics = {
     bundleMs: 0,
     prepareMs: 0,
@@ -176,6 +179,9 @@ export class WebRendererSession implements RendererSession {
         this.metrics.browserLaunchMs = browser.browserLaunchMs;
         this.browserVersion = browser.browserVersion;
         await this.captureBackend.prepare(browser.page);
+        this.hasFrameDiagnostics = await browser.page.evaluate(() =>
+          window.sceneWireFrameDiagnostics(),
+        );
         this.prepared = true;
       },
     );
@@ -212,7 +218,7 @@ export class WebRendererSession implements RendererSession {
     );
     return this.compositionAssetByClipId.get(id) ?? id;
   }
-  async renderFrame(context: FrameContext) {
+  async seekFrame(context: FrameContext, failOnError = true) {
     if (!this.prepared) throw this.diagnostic('Prepare session first');
     this.currentFrame = context.frame;
     try {
@@ -233,6 +239,24 @@ export class WebRendererSession implements RendererSession {
         return timing;
       },
     );
+    const diagnostics = host.diagnostics.map((d) => ({
+      ...d,
+      engine: this.engines.get(d.composition),
+    }));
+    this.frameDiagnostics.push(...diagnostics);
+    if (failOnError && diagnostics.some((d) => d.severity === 'error'))
+      throw new RenderError({
+        renderer: 'web',
+        composition: this.activeComposition(),
+        frame: context.frame,
+        phase: 'frame-validation',
+        error: 'Frame quality violation',
+        frameDiagnostics: diagnostics,
+      });
+    return { start, host, diagnostics };
+  }
+  async renderFrame(context: FrameContext) {
+    const { start, host } = await this.seekFrame(context);
     const seekElapsed = performance.now() - start;
     const captureStart = performance.now();
     const source = await this.bounded(

@@ -1,3 +1,4 @@
+import { aggregateFrameDiagnostics } from '../frame-diagnostics';
 import { performance } from 'node:perf_hooks';
 import type { VideoProject } from '@scenewirejs/schema';
 import type { RenderRange, RenderPlan } from '@scenewirejs/renderer-core';
@@ -63,6 +64,9 @@ export function exportReport({
   return {
     output: options.output,
     frames: frameCount,
+    frameDiagnostics: aggregateFrameDiagnostics(
+      sessions.flatMap((s) => s.frameDiagnostics),
+    ),
     range,
     fps: project.fps,
     durationSeconds: frameCount / project.fps,
@@ -77,6 +81,9 @@ export function exportReport({
       workers: plan.workers,
       captureBackend,
       frames: frameCount,
+      frameDiagnostics: aggregateFrameDiagnostics(
+        sessions.flatMap((s) => s.frameDiagnostics),
+      ),
       prepareMs,
       bundleMs: sum('bundleMs'),
       browserLaunchMs: sum('browserLaunchMs'),

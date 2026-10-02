@@ -22,9 +22,11 @@ const files = directories.flatMap((directory) =>
   sources(join(directory, 'src')),
 );
 const extension = (specifier) =>
-  specifier.startsWith('.') && !/\.(?:js|mjs|cjs|json)$/.test(specifier)
-    ? specifier.replace(/\.tsx?$/, '') + '.js'
-    : specifier;
+  specifier === '.' || specifier === '..'
+    ? specifier + '/index.js'
+    : specifier.startsWith('.') && !/\.(?:js|mjs|cjs|json)$/.test(specifier)
+      ? specifier.replace(/\.tsx?$/, '') + '.js'
+      : specifier;
 // All relative ESM edges are explicit .js in both emitted JS and declarations.
 function rewrite(source) {
   return source.replace(

@@ -46,6 +46,9 @@
       ],
       "@scenewirejs/renderer-web/preview": [
         "./packages/renderer-web/src/preview.ts"
+      ],
+      "@scenewirejs/media-inspect/internal/process": [
+        "./packages/media-inspect/src/process.ts"
       ]
     }
   },

@@ -1,5 +1,5 @@
 import { mkdtemp, writeFile, realpath, rm } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { join, relative, dirname, extname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { builtinModules } from 'node:module';
 import { build } from 'vite';
@@ -51,6 +51,16 @@ export async function bundle(
               if (
                 path !== input &&
                 path !== browserRuntime &&
+                // The browser entry's owned diagnostic validator is the only
+                // additional trusted runtime file, not a general source allowlist.
+                !(
+                  browserRuntime &&
+                  path ===
+                    join(
+                      dirname(browserRuntime),
+                      'frame-diagnostics' + extname(browserRuntime),
+                    )
+                ) &&
                 !allowed.some((base) => !relative(base, path).startsWith('..'))
               )
                 throw Error('Composition import escapes its source directory');

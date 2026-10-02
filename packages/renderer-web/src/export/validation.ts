@@ -1,7 +1,8 @@
 import {
+  executable,
   spawnMediaProcess,
   terminateMediaProcess,
-} from '@scenewirejs/media-inspect';
+} from '@scenewirejs/media-inspect/internal/process';
 import type { VideoProject } from '@scenewirejs/schema';
 export async function validateSilentPicture(
   file: string,
@@ -10,7 +11,7 @@ export async function validateSilentPicture(
   signal: AbortSignal,
 ) {
   const child = spawnMediaProcess(
-    'ffprobe',
+    executable('ffprobe'),
     [
       '-v',
       'error',

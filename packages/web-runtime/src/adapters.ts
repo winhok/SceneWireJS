@@ -36,6 +36,7 @@ export function createThreeFrameAdapter<S, C>(options: {
   scene: S;
   camera: C;
   update(context: FrameContext): void | Promise<void>;
+  validateFrame?: FrameAdapter['validateFrame'];
   mixers?: readonly { setTime(seconds: number): unknown }[];
   libraryRandom?: (key: string) => number;
   refreshMedia?(): void | Promise<void>;
@@ -63,6 +64,7 @@ export function createThreeFrameAdapter<S, C>(options: {
       await options.refreshMedia?.();
       render();
     },
+    validateFrame: options.validateFrame,
     dispose: options.dispose,
   };
 }

@@ -1,10 +1,4 @@
-export {
-  run,
-  executable,
-  MediaError,
-  spawnMediaProcess,
-  terminateMediaProcess,
-} from './process';
+export { run, executable, MediaError } from './process';
 export type { RunOptions } from './process';
 export { ingestMedia } from './ingest';
 export { type LocalMedia } from './contracts';

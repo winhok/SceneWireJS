@@ -23,3 +23,13 @@ Use synchronous withSeededLibraryRandom(init.random, namespace, callback) for li
 Preview chooses the hardware path; deterministic-export pins ANGLE/SwiftShader and a fresh browser context. Logical seek determinism, same-environment raster repeatability and cross-GPU repeatability are separate: only the first two are tested. Existing DOM/SVG pixel thresholds are unchanged. Fixed seed, local assets and fonts remain important. Sandboxed code has no Node, network, filesystem or uncontrolled clocks. Prepare/seek/capture remain bounded.
 
 RenderRange is half-open [startFrame,endFrame); `scenewire render project.json --start-frame N --end-frame M --output new.mp4` preserves project time and trims canonical audio to the same interval. Progress counts frames in that range; cancellation propagates to browser/encoder. No distributed executor.
+
+## Final frame diagnostics
+
+A composition or registered `FrameAdapter` can implement optional `validateFrame(context)`. It runs after composition seek, adapter seek, animation synchronization, readiness and adapter flush, before capture. Return `FrameDiagnostic` objects (`id`, `severity`, `message`, optional `source` and JSON `metadata`). SceneWire supplies the canonical frame, composition and engine; author supplied provenance is ignored.
+
+`info` and `warning` are reported and permit rendering. `error` fails rendering before accepting an output. `render-check` detects validators and first sweeps every frame without PNG capture, comparing facts in fresh forward/reverse sessions, then retains its existing representative pixel checks. Compositions without validators skip the diagnostic sweep. Reports collapse only consecutive identical facts; exact per-frame facts remain available on failures. Explicit empty or out-of-range render-check frame selections reject.
+
+`createThreeFrameAdapter` accepts an optional `validateFrame` callback. Authors own geometry tests: camera blocker penetration, clearance, envelope exits, near-target occlusion, moving geometry penetration or invalid materials. Implement the appropriate AABB/OBB/raycast checks inside the composition; SceneWire supplies no collision algorithm or automatic correction. Validation observes the flushed camera/object/mixer/material state.
+
+Complex GLB/Draco authoring remains outside 1.0: preprocess deterministically offline into local artifacts, avoid runtime network/uncontrolled workers, and seed initialization. Asset loader frameworks and scene-state attribution belong to later versions.

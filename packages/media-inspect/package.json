@@ -1,12 +1,17 @@
 {
   "name": "@scenewirejs/media-inspect",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0",
   "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./internal/process": {
+      "types": "./dist/process.d.ts",
+      "import": "./dist/process.js",
+      "default": "./dist/process.js"
     }
   },
   "dependencies": {

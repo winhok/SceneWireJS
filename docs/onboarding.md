@@ -3,7 +3,7 @@
 Node 22.12 or newer, FFmpeg/ffprobe and compatible Chromium are render prerequisites. Install the CLI, then create an empty project:
 
 ```sh
-npm install @scenewirejs/cli@next
+npm install @scenewirejs/cli@1.0.0
 mkdir my-video
 cd my-video
 npx scenewire init --yes
@@ -24,3 +24,13 @@ npx scenewire render project.json --output video.mp4
 On audio mux failure, the error includes sanitized FFmpeg telemetry and a retained silent picture location. Audio progress uses FFmpeg output time; the configurable internal inactivity bound defaults to five minutes without advancing output time. Picture rendering has its existing independent timeout. A successful picture can be muxed again internally using the retained file; historical audio hang root cause remains unconfirmed.
 
 Generated optional-engine dependencies use profile-declared compatibility ranges. SceneWire-owned imports bind the installed CLI version. Commit the consumer lockfile to reproduce exact resolved versions; a compatibility range is not an immutable dependency lock. `engines` labels runtime availability and authoring completeness separately.
+
+## Execution controls and authoring compatibility
+
+`render-check`, `render`, `capture` and `contact-sheet` accept `--prepare-timeout-ms`, `--seek-timeout-ms` and `--capture-timeout-ms`. `preview` accepts only `--prepare-timeout-ms`, because generating the portable artifact prepares resources without a frame capture. `render` also accepts `--render-timeout-ms` and `--audio-stall-timeout-ms`. Each must be a positive integer no greater than 3,600,000; duplicate or inapplicable flags reject. Defaults are unchanged. These are execution options, never VideoProject fields. `render-check --frames` requires a nonempty comma-separated list of in-range integer frames.
+
+`doctor --json` and `engines --json` include authoring dependency diagnostics: `missing` (not directly declared), `unresolvable` (declared but installed metadata cannot resolve), `incompatible` (installed version does not satisfy the engine range), or `complete`. No dependency is automatically installed by these commands.
+
+All Node media paths honor `SCENEWIRE_FFMPEG_PATH` and `SCENEWIRE_FFPROBE_PATH` before PATH. A configured missing or empty executable fails with remediation and never silently falls back. Doctor reports whether discovery used `configured` or `PATH`.
+
+The media-inspect root no longer exposes process ownership primitives. The `internal/process` subpath is reserved for SceneWire implementation and carries no stable consumer compatibility promise. Media inspection, encoder/mux and picture validation share its process-tree cancellation implementation. Use inspection APIs from the root for application code.

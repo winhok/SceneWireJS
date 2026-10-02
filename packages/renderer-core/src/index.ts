@@ -56,10 +56,32 @@ export interface RendererCapabilities {
   transparentOutput: boolean;
   browserRequired: boolean;
 }
+export type JsonSerializableValue =
+  | null
+  | boolean
+  | number
+  | string
+  | readonly JsonSerializableValue[]
+  | { readonly [key: string]: JsonSerializableValue };
+export interface FrameDiagnostic {
+  id: string;
+  severity: 'info' | 'warning' | 'error';
+  message: string;
+  source?: string;
+  metadata?: Record<string, JsonSerializableValue>;
+}
+export interface ResolvedFrameDiagnostic extends FrameDiagnostic {
+  frame: number;
+  composition: string;
+  engine?: string;
+}
 export interface FrameAdapter {
   prepare?(): void | Promise<void>;
   seek(context: FrameContext): void | Promise<void>;
   flush?(): void | Promise<void>;
+  validateFrame?(
+    context: FrameContext,
+  ): readonly FrameDiagnostic[] | Promise<readonly FrameDiagnostic[]>;
   dispose?(): void | Promise<void>;
 }
 export interface RenderedFrame {

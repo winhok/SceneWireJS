@@ -1,7 +1,13 @@
+import {
+  aggregateFrameDiagnostics,
+  type FrameDiagnosticRange,
+} from './frame-diagnostics';
 import type { CaptureBackendId } from './capture';
 import type { VideoProject } from '@scenewirejs/schema';
 export interface RenderDiagnostic {
   retainedPicture?: string;
+  frameDiagnosticRanges?: FrameDiagnosticRange[];
+  frameDiagnostics?: import('@scenewirejs/renderer-core').ResolvedFrameDiagnostic[];
   encoder?: import('./export/encoder').EncoderDiagnostic;
   worker?: number;
   chunk?: string;
@@ -15,6 +21,10 @@ export interface RenderDiagnostic {
 export class RenderError extends Error {
   constructor(readonly diagnostic: RenderDiagnostic) {
     super(diagnostic.error);
+    if (diagnostic.frameDiagnostics)
+      diagnostic.frameDiagnosticRanges ??= aggregateFrameDiagnostics(
+        diagnostic.frameDiagnostics,
+      );
   }
 }
 export interface WebRenderOptions {

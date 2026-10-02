@@ -1,9 +1,10 @@
 import { type ChildProcess } from 'node:child_process';
 import { once } from 'node:events';
 import {
+  executable,
   spawnMediaProcess,
   terminateMediaProcess,
-} from '@scenewirejs/media-inspect';
+} from '@scenewirejs/media-inspect/internal/process';
 export interface EncoderDiagnostic {
   phase: string;
   exitCode: number | null;
@@ -57,7 +58,7 @@ export async function runEncoder(
   if (!Number.isFinite(stallTimeoutMs) || stallTimeoutMs <= 0)
     throw Error('Invalid encoder stall timeout');
   const child = spawnMediaProcess(
-    'ffmpeg',
+    executable('ffmpeg'),
     [
       '-hide_banner',
       '-loglevel',
@@ -135,7 +136,7 @@ export async function runEncoder(
       reject(
         new EncoderError(
           diagnostic(null),
-          'FFmpeg unavailable. Install ffmpeg on PATH before rendering.',
+          'FFmpeg unavailable. Install ffmpeg or check SCENEWIRE_FFMPEG_PATH before rendering.',
         ),
       ),
     );
@@ -166,7 +167,7 @@ export async function runEncoder(
     } catch {
       throw new EncoderError(
         diagnostic(null),
-        'FFmpeg unavailable. Install ffmpeg on PATH before rendering.',
+        'FFmpeg unavailable. Install ffmpeg or check SCENEWIRE_FFMPEG_PATH before rendering.',
       );
     }
     if (input) await input(child);
