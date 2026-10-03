@@ -13,7 +13,7 @@ VideoProject owns scenes, tracks, clips, assets and narration. FrameContext driv
 ## Install
 
 ```sh
-npm install @scenewirejs/cli@1.0.0
+npm install @scenewirejs/cli@1.0.1
 npx scenewire engines
 ```
 

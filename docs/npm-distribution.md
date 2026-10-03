@@ -17,4 +17,4 @@ Package checks compare entrypoints against [the API contract](package-contract.j
 
 Browser operations require Chromium (Playwright-managed or SCENEWIRE_CHROMIUM_PATH), FFmpeg and ffprobe. Install optional authoring dependencies in the consuming project when using those engines. Smoke validation covers source distribution coherence and minimal installed-product behavior.
 
-The stable release identity is 1.0.0. Install the CLI with `npm install @scenewirejs/cli@1.0.0`. Package metadata points to the public source repository. A local build or pack does not publish any package.
+The stable release identity is 1.0.1. Install the CLI with `npm install @scenewirejs/cli@1.0.1`. Package metadata points to the public source repository. A local build or pack does not publish any package.
