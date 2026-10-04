@@ -1,7 +1,8 @@
+import { stripFrames, parseCrop, reviewSvg } from './review-tools';
 import { projectDiagnostics } from '@scenewirejs/schema';
 import { referenceCommand } from './reference';
 import { productionCommand } from './production';
-import { validateVisualPlan } from '@scenewirejs/director-core';
+import { validateVersionedVisualPlan } from '@scenewirejs/director-core';
 import {
   frameTimeoutFlags,
   timeoutOptions,
@@ -61,6 +62,22 @@ async function main(args: string[]) {
     return;
   }
 
+  if (command === 'final-media-qc') {
+    if (!file || rest.length)
+      throw Error('Usage: scenewire final-media-qc <final-video>');
+    const { inspectFinalMedia } = await import('@scenewirejs/media-inspect');
+    const controller = new AbortController(),
+      cancel = () => controller.abort();
+    process.once('SIGINT', cancel);
+    process.once('SIGTERM', cancel);
+    try {
+      emit(await inspectFinalMedia(file, { signal: controller.signal }));
+    } finally {
+      process.removeListener('SIGINT', cancel);
+      process.removeListener('SIGTERM', cancel);
+    }
+    return;
+  }
   if (command && ['media', 'reference', 'reference-check'].includes(command)) {
     const result = await referenceCommand(command, args.slice(1));
     emit(result);
@@ -109,13 +126,13 @@ async function main(args: string[]) {
       throw new Error(
         'Usage: scenewire plan-check <plan.json> [--project <project.json>]',
       );
-    const sceneIds = rest.length
-      ? parseProject(await readFile(rest[1]!, 'utf8')).scenes.map((s) => s.id)
+    const scenes = rest.length
+      ? parseProject(await readFile(rest[1]!, 'utf8')).scenes
       : undefined;
-    const report = validateVisualPlan(
+    const report = validateVersionedVisualPlan(
       JSON.parse(await readFile(file, 'utf8')),
       installedEngineRegistry(),
-      sceneIds,
+      { scenes },
     );
     emit(report);
     if (!report.valid) process.exitCode = 1;
@@ -134,9 +151,14 @@ async function main(args: string[]) {
   }
   const project = parseProject(projectText);
   if (
-    ['capture', 'contact-sheet', 'render-check', 'render', 'preview'].includes(
-      command ?? '',
-    )
+    [
+      'capture',
+      'contact-sheet',
+      'frame-strip',
+      'render-check',
+      'render',
+      'preview',
+    ].includes(command ?? '')
   ) {
     const { WebRendererSession, renderCheck, RenderError } =
       await import('@scenewirejs/renderer-web');
@@ -157,21 +179,23 @@ async function main(args: string[]) {
             ? ['--render-timeout-ms', '--audio-stall-timeout-ms']
             : []),
           ...(command === 'capture'
-            ? ['--frame', '--output']
+            ? ['--frame', '--output', '--crop']
             : command === 'contact-sheet'
-              ? ['--frames', '--output']
-              : command === 'render-check'
-                ? ['--frames']
-                : command === 'render'
-                  ? [
-                      '--output',
-                      '--start-frame',
-                      '--end-frame',
-                      '--profile',
-                      '--workers',
-                      '--chunk-frames',
-                    ]
-                  : ['--output', '--profile']),
+              ? ['--frames', '--output', '--crop']
+              : command === 'frame-strip'
+                ? ['--start-frame', '--end-frame', '--output', '--crop']
+                : command === 'render-check'
+                  ? ['--frames']
+                  : command === 'render'
+                    ? [
+                        '--output',
+                        '--start-frame',
+                        '--end-frame',
+                        '--profile',
+                        '--workers',
+                        '--chunk-frames',
+                      ]
+                    : ['--output', '--profile']),
         ].includes(flag) ||
         value === undefined ||
         flags.has(flag)
@@ -250,10 +274,23 @@ async function main(args: string[]) {
           }),
         );
       }
+      const crop = flags.has('--crop')
+        ? parseCrop(flags.get('--crop')!, project.canvas)
+        : undefined;
+      if (crop && !output.endsWith('.svg'))
+        throw Error('Cropped evidence requires an .svg output');
       const frames =
-        command === 'capture'
-          ? [Number(flags.get('--frame'))]
-          : selectedFrames(flags.get('--frames') ?? '');
+        command === 'frame-strip'
+          ? stripFrames(
+              Number(flags.get('--start-frame')),
+              Number(flags.get('--end-frame')),
+              Math.max(
+                ...project.scenes.map((s) => s.startFrame + s.durationFrames),
+              ),
+            )
+          : command === 'capture'
+            ? [Number(flags.get('--frame'))]
+            : selectedFrames(flags.get('--frames') ?? '');
       if (
         (command === 'capture' && !flags.has('--frame')) ||
         !frames.length ||
@@ -268,14 +305,10 @@ async function main(args: string[]) {
           images.push(
             (await session.renderFrame(session.contextAt(frame))).source,
           );
-        if (command === 'capture')
+        if (command === 'capture' && !crop)
           await writeFile(output, images[0]!, { flag: 'wx' });
         else {
-          // SVG is a portable contact-sheet artifact; frame PNGs are embedded without dependencies.
-          const columns = Math.min(3, frames.length),
-            width = 480,
-            height = (width * project.canvas.height) / project.canvas.width;
-          const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${columns * width}" height="${Math.ceil(frames.length / columns) * (height + 28)}">${images.map((bytes, index) => `<image x="${(index % columns) * width}" y="${Math.floor(index / columns) * (height + 28)}" width="${width}" height="${height}" href="data:image/png;base64,${bytes.toString('base64')}"/><text x="${(index % columns) * width + 8}" y="${Math.floor(index / columns) * (height + 28) + height + 20}" font-size="16">Frame ${frames[index]}</text>`).join('')}</svg>`;
+          const svg = reviewSvg(frames, images, project.canvas, crop);
           await writeFile(output, svg, { flag: 'wx' });
         }
         await session.dispose();

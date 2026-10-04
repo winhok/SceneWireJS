@@ -20,3 +20,4 @@ export { motion } from './motion';
 export { motionFromGray } from './motion';
 export { waveform } from './waveform';
 export { waveformSvg } from './waveform';
+export { inspectFinalMedia, type FinalMediaQc } from './final-media';

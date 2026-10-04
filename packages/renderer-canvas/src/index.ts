@@ -1,8 +1,4 @@
-import {
-  revealPath,
-  screenToWorld,
-  isDefaultCamera,
-} from '@scenewirejs/runtime';
+import { revealPath, screenToWorld, isDefaultCamera } from '@scenewirejs/runtime';
 import type { RenderGraph, RenderNode, Renderer } from '@scenewirejs/runtime';
 export interface CanvasSurface {
   width: number;

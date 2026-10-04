@@ -1,6 +1,6 @@
 import { type EngineRegistry } from '@scenewirejs/director-core';
 import { validateNarrativePlan } from './narrative';
-import { validateVisualPlan } from '@scenewirejs/director-core';
+import { validateVersionedVisualPlan } from '@scenewirejs/director-core';
 import { error } from './diagnostics';
 export function validateProductionPlans(
   brief: unknown,
@@ -10,11 +10,9 @@ export function validateProductionPlans(
   registry: EngineRegistry,
 ) {
   const report = validateNarrativePlan(narrative, brief, sources);
-  const v = validateVisualPlan(
-    visual,
-    registry,
-    report.value?.scenes.map((s) => s.id),
-  );
+  const v = validateVersionedVisualPlan(visual, registry, {
+    scenes: report.value?.scenes,
+  });
   report.diagnostics.push(...v.diagnostics);
   report.valid = report.valid && v.valid;
   if (report.value && v.plan) {

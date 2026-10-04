@@ -2,3 +2,9 @@ pnpm-lock.yaml
 node_modules/
 **/dist/
 .build/
+
+# Checked in memory by scripts/format-check.mjs after exact namespace reversal.
+packages/domain-developer/src/index.ts
+packages/editor-core/src/index.ts
+packages/renderer-canvas/src/index.ts
+packages/renderer-web/src/session/prepare.ts

@@ -13,6 +13,10 @@ export function createCodeCompiler(highlighter: HighlighterCore) {
       tokens = highlighter.codeToTokens(p.code.replace(/\t/g, '  '), {
         lang: p.language,
         theme: 'github-dark',
+        // A wall-clock deadline silently returns partial tokens and corrupts the
+        // cached grammar state. Authored graph identity must not depend on CPU
+        // speed or scheduling; the enclosing CLI process owns execution bounds.
+        tokenizeTimeLimit: 0,
       });
       if (cache.size >= 100) cache.delete(cache.keys().next().value!);
       cache.set(key, tokens);

@@ -1,6 +1,6 @@
 {
   "name": "@scenewirejs/renderer-web",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "exports": {
     ".": {
@@ -31,11 +31,11 @@
     "@scenewirejs/runtime": "workspace:*",
     "@scenewirejs/schema": "workspace:*",
     "@scenewirejs/web-runtime": "workspace:*",
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.4",
     "acorn": "^8.18.0",
     "mediabunny": "^1.60.0",
     "playwright": "^1.63.0",
-    "vite": "^8.3.1"
+    "vite": "^8.3.2"
   },
   "files": [
     "dist/"

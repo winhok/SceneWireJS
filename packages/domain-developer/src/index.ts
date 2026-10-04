@@ -19,8 +19,7 @@ import {
 import { compileDiagram } from './diagrams';
 import { createCodeCompiler, compileTerminal, compileBrowser } from './windows';
 import { box, text } from './primitives';
-export type DeveloperType =
-  import('@scenewirejs/schema').DeveloperComponentType;
+export type DeveloperType = import('@scenewirejs/schema').DeveloperComponentType;
 const nodes = (names: string[], kinds: string[] = []) =>
   names.map((label, index) => ({
     id: `node-${index}`,

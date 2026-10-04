@@ -1,6 +1,6 @@
 import { type ProductionBrief } from './../contracts/brief';
 import { type NarrativePlan } from './../contracts/narrative';
-import { type VisualPlan } from '@scenewirejs/director-core';
+import { type VisualPlan, type VisualPlanV2 } from '@scenewirejs/director-core';
 import { type EngineRegistry } from '@scenewirejs/director-core';
 import { type SourcePack } from './../contracts/source';
 import { validateProductionPlans } from './../validation/plans';
@@ -15,7 +15,7 @@ export interface SkeletonScene {
 export function compileProductionSkeleton(
   brief: ProductionBrief,
   narrative: NarrativePlan,
-  visual: VisualPlan,
+  visual: VisualPlan | VisualPlanV2,
   registry: EngineRegistry,
   options: { sources: SourcePack; createdAt: string; seed: number },
 ) {

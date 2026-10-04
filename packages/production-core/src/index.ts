@@ -28,3 +28,31 @@ export { type SkeletonScene } from './compile/skeleton';
 export { compileProductionSkeleton } from './compile/skeleton';
 export { validateProductionAssembly } from './validation/assembly';
 export { buildProductionNarration } from './compile/narration';
+export {
+  candidateBindingSchema,
+  reviewEvidenceSchema,
+  reviewFindingSchema,
+  sceneReviewV2Schema,
+  type CandidateBinding,
+  type ArtifactDigest,
+  type ReviewEvidence,
+  type ReviewFinding,
+  type SceneReviewV2,
+} from './contracts/review-v2';
+export {
+  validateSceneReviewV2,
+  sameCandidate,
+  frameDiagnosticsToFindings,
+  type ReviewValidationContext,
+  type ReviewFrameDiagnostic,
+} from './validation/review-v2';
+export {
+  repairCaseSchema,
+  repairCheckSchema,
+  type RepairCase,
+  type RepairCheck,
+} from './contracts/repair';
+export {
+  validateRepairCase,
+  type RepairValidationContext,
+} from './validation/repair';

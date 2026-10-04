@@ -45,12 +45,10 @@ export async function prepareResources(
   const runtimeRoots = [
     runtime,
     ...(await Promise.all(
-      ['@scenewirejs/web-runtime', '@scenewirejs/renderer-core'].map(
-        async (id) => {
-          const { root, metadata } = await resolvedPackage(runtimeResolver, id);
-          return dirname(join(root, metadata.exports!['.']!.import!));
-        },
-      ),
+      ['@scenewirejs/web-runtime', '@scenewirejs/renderer-core'].map(async (id) => {
+        const { root, metadata } = await resolvedPackage(runtimeResolver, id);
+        return dirname(join(root, metadata.exports!['.']!.import!));
+      }),
     )),
   ];
   await resourceHost.prepare();

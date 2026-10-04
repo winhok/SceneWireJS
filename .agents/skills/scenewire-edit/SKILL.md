@@ -8,7 +8,7 @@ description: Inspect or edit an existing SceneWire project using typed semantic 
 Build the JSON CLI with `pnpm --filter @scenewirejs/cli build`; invoke `node apps/cli/dist/scenewire.js` from the repository root. No model call, remote write or paid service is part of this workflow.
 
 1. `inspect <project.json>` gives compact scenes/tracks/component/semantic inventory. Use `inspect-scene <project.json> <scene-id>` or `inspect-clip <project.json> <clip-id>` for details and references.
-2. Create the smallest SceneWirePatch v1 plan. Read `packages/patch/src/schema.ts` for the exact contract and [patch editing](../../../docs/patch-editing.md).
+2. Create the smallest SceneWirePatch v1 plan. Read `packages/patch/src/schema.ts` for the exact contract and the relevant `examples/patches/*.json` for a working example.
 3. Run `patch <project.json> <patch.json> --dry-run`. Inspect `valid`, `resolvedTargets`, `changes`, `issues`, `warnings`, affected ranges and suggested preview frames. Fix errors before applying; never interpret an agent's statement as validation.
 4. Write a new project with `patch <project.json> <patch.json> --output <new.json>` or paste the plan into editor Patch Lab. Preview is ephemeral; Commit uses normal Undo/Redo. A changed project/plan requires a fresh dry run. Do not overwrite the source JSON.
 5. Verify a few suggested frames, plus the relevant compile/export behavior. Report exactly what changed and what remains unverified.

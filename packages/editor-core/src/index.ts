@@ -1,11 +1,7 @@
 import { isVisualTrack, visualClips } from '@scenewirejs/schema';
 import { detachLayout, resolveProjectLayouts } from '@scenewirejs/runtime';
 import { create } from 'zustand';
-import {
-  projectSchema,
-  type Clip,
-  type VideoProject,
-} from '@scenewirejs/schema';
+import { projectSchema, type Clip, type VideoProject } from '@scenewirejs/schema';
 export function updateClip(
   project: VideoProject,
   id: string,

@@ -8,6 +8,10 @@ import {
   validateSourcePack,
   validateAssetLedger,
   sceneReviewSchema,
+  sceneReviewV2Schema,
+  validateSceneReviewV2,
+  sameCandidate,
+  type CandidateBinding,
   type AssetLedger,
   validateNarrativePlan,
   validateProductionPlans,
@@ -15,10 +19,14 @@ import {
   validateProductionAssembly,
   type ProductionDiagnostic,
 } from '@scenewirejs/production-core';
-import { visualPlanSchema } from '@scenewirejs/director-core';
+import { parseVisualPlan } from '@scenewirejs/director-core';
 import { compositionManifestSchema } from '@scenewirejs/schema';
 import { installedEngineRegistry } from './director';
 import { scaffold } from './scaffold';
+import {
+  productionCandidate,
+  hashRetainedArtifact,
+} from './production-evidence';
 const json = async (path: string): Promise<unknown> =>
   JSON.parse(await readFile(path, 'utf8'));
 function inside(root: string, path: string) {
@@ -88,7 +96,7 @@ export async function productionCommand(
   const brief = validateProductionBrief(briefInput).value!,
     sources = validateSourcePack(sourcesInput).value!,
     narrative = plans.value!,
-    visual = visualPlanSchema.parse(visualInput);
+    visual = parseVisualPlan(visualInput);
   const diagnostics: ProductionDiagnostic[] = [...plans.diagnostics];
   for (const source of sources.sources) {
     if (!source.snapshotPath) {
@@ -266,6 +274,7 @@ export async function productionCommand(
     engineId: string;
     status:
       'planned' | 'scaffolded' | 'implemented' | 'renderable' | 'reviewed';
+    candidate?: CandidateBinding;
   }[] = [];
   for (const scene of narrative.scenes) {
     const engine = visual.scenes.find((s) => s.id === scene.id)!.engineId;
@@ -327,7 +336,93 @@ export async function productionCommand(
       ]);
     try {
       const { renderCheck } = await import('@scenewirejs/renderer-web');
-      await renderCheck({ project: p, projectRoot: root }, frames);
+      const v2Scenes = new Set<string>();
+      for (const scene of scenes) {
+        if (visual.version === 2) v2Scenes.add(scene.sceneId);
+        else
+          try {
+            const input = await json(
+              await retainedPath(
+                root,
+                `evidence/reviews/${scene.sceneId}.json`,
+              ),
+            );
+            if (
+              typeof input === 'object' &&
+              input !== null &&
+              'version' in input &&
+              input.version === 2
+            )
+              v2Scenes.add(scene.sceneId);
+          } catch {
+            /* v1 review handling below preserves existing behavior. */
+          }
+      }
+      const beforeCandidates = new Map(
+        await Promise.all(
+          scenes
+            .filter((s) => v2Scenes.has(s.sceneId))
+            .map(
+              async (s) =>
+                [
+                  s.sceneId,
+                  await productionCandidate(
+                    root,
+                    manifest.project,
+                    p,
+                    s.sceneId,
+                  ),
+                ] as const,
+            ),
+        ),
+      );
+      const renderReport = await renderCheck(
+        { project: p, projectRoot: root },
+        frames,
+      );
+      const buildIdentity = (
+        builds: (typeof renderReport.performance)[number]['builds'],
+      ) =>
+        JSON.stringify(
+          builds
+            .map(({ compositionId, sourceHash }) => ({
+              compositionId,
+              sourceHash,
+            }))
+            .sort((a, b) =>
+              a.compositionId < b.compositionId
+                ? -1
+                : a.compositionId > b.compositionId
+                  ? 1
+                  : 0,
+            ),
+        );
+      if (
+        v2Scenes.size > 0 &&
+        buildIdentity(renderReport.performance[0]!.builds) !==
+          buildIdentity(renderReport.performance[1]!.builds)
+      )
+        throw new Error('Renderer source identity changed between sessions');
+      for (const scene of scenes) {
+        if (!v2Scenes.has(scene.sceneId)) continue;
+        scene.candidate = await productionCandidate(
+          root,
+          manifest.project,
+          p,
+          scene.sceneId,
+        );
+        if (
+          !sameCandidate(beforeCandidates.get(scene.sceneId)!, scene.candidate)
+        )
+          throw new Error('Candidate changed during render-check');
+        scene.candidate = await productionCandidate(
+          root,
+          manifest.project,
+          p,
+          scene.sceneId,
+          renderReport.performance[0]!.builds,
+        );
+      }
       for (const scene of scenes) scene.status = 'renderable';
       const projectSha256 = createHash('sha256')
         .update(await readFile(projectPath))
@@ -343,9 +438,34 @@ export async function productionCommand(
         }
         if (!present) continue;
         try {
-          const review = sceneReviewSchema.parse(
-            await json(await retainedPath(root, reviewPath)),
-          );
+          const reviewInput = await json(await retainedPath(root, reviewPath));
+          if (
+            typeof reviewInput === 'object' &&
+            reviewInput !== null &&
+            'version' in reviewInput &&
+            reviewInput.version === 2
+          ) {
+            const review = sceneReviewV2Schema.parse(reviewInput);
+            const observed = await Promise.all(
+              review.evidence.map((e) => hashRetainedArtifact(root, e.path)),
+            );
+            const report = validateSceneReviewV2(review, {
+              candidate: scene.candidate!,
+              evidence: observed,
+              sceneDurationFrames: narrative.scenes.find(
+                (s) => s.id === scene.sceneId,
+              )!.durationFrames,
+            });
+            diagnostics.push(...report.diagnostics);
+            if (
+              review.sceneId !== scene.sceneId ||
+              review.disposition !== 'pass'
+            )
+              throw new Error('Mismatched or non-passing scene review');
+            if (report.valid) scene.status = 'reviewed';
+            continue;
+          }
+          const review = sceneReviewSchema.parse(reviewInput);
           const capture = await readFile(
             await retainedPath(root, review.capturePath),
           );

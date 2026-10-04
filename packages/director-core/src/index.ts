@@ -385,3 +385,349 @@ export function createEngineRegistry(environment?: EngineEnvironment) {
   builtinEngines.forEach((p) => registry.register(p));
   return registry;
 }
+
+const frame = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
+const rangeSchema = z
+  .object({ startFrame: frame, endFrame: frame })
+  .strict()
+  .refine(
+    (range) => range.endFrame > range.startFrame,
+    'Expected a nonempty half-open frame range',
+  );
+
+/** Production language extends the existing direction; narrative content stays external. */
+export const visualDirectionV2Schema = visualDirectionSchema.extend({
+  cameraLanguage: text.optional(),
+  transitionLanguage: text.optional(),
+  energyCharacter: text.optional(),
+});
+export type VisualDirectionV2 = z.infer<typeof visualDirectionV2Schema>;
+export const visualReadPlanSchema = z
+  .object({
+    id: text,
+    startFrame: frame,
+    endFrame: frame,
+    intent: text,
+    attentionTarget: text,
+    importance: z.enum(['supporting', 'important']).optional(),
+  })
+  .strict()
+  .refine(
+    (read) => read.endFrame > read.startFrame,
+    'Expected a nonempty half-open read range',
+  );
+export type VisualReadPlan = z.infer<typeof visualReadPlanSchema>;
+export const visualShotPlanSchema = z
+  .object({
+    id: text,
+    range: rangeSchema,
+    role: text,
+    focalAction: text,
+    reads: z.array(visualReadPlanSchema).max(1000),
+    cameraIntent: text.optional(),
+    motionIntent: text,
+    framing: text.optional(),
+    composition: text.optional(),
+    focalHierarchy: text.optional(),
+    textTreatment: text.optional(),
+    temporalRhythm: text.optional(),
+    transitionIn: text.optional(),
+    transitionOut: text.optional(),
+    energy: text.optional(),
+    continuity: text.optional(),
+  })
+  .strict();
+export type VisualShotPlan = z.infer<typeof visualShotPlanSchema>;
+export const visualScenePlanV2Schema = visualScenePlanSchema.extend({
+  sceneId: text,
+  /** cover-scene additionally requires contiguous coverage from 0 to narrative duration. */
+  shotPartition: z.enum(['non-overlapping', 'cover-scene']).optional(),
+  shots: z.array(visualShotPlanSchema).min(1).max(1000),
+});
+export type VisualScenePlanV2 = z.infer<typeof visualScenePlanV2Schema>;
+export const visualPlanV2Schema = visualPlanSchema.extend({
+  version: z.literal(2),
+  direction: visualDirectionV2Schema.optional(),
+  scenes: z.array(visualScenePlanV2Schema).min(1).max(1000),
+});
+export type VisualPlanV2 = z.infer<typeof visualPlanV2Schema>;
+export const versionedVisualPlanSchema = z.discriminatedUnion('version', [
+  visualPlanSchema,
+  visualPlanV2Schema,
+]);
+export function parseVisualPlan(input: unknown) {
+  return versionedVisualPlanSchema.parse(input);
+}
+export interface VisualPlanValidationContext {
+  /** Structural projection of NarrativePlan: duration remains owned by narrative. */
+  scenes?: readonly { id: string; durationFrames: number }[];
+  sceneIds?: readonly string[];
+  /** Optional advisory threshold in frames; no universal reading-speed rule is imposed. */
+  minimumImportantReadFrames?: number;
+}
+export function validateVisualPlanV2(
+  input: unknown,
+  registry: EngineRegistry,
+  context: VisualPlanValidationContext = {},
+) {
+  const parsed = visualPlanV2Schema.safeParse(input);
+  if (!parsed.success)
+    return {
+      valid: false,
+      diagnostics: parsed.error.issues.map((i) => ({
+        severity: 'error' as const,
+        code: 'plan.schema',
+        message: `${i.path.join('.')}: ${i.message}`,
+      })),
+    };
+  const plan = parsed.data;
+  const sceneIds = context.scenes?.map((scene) => scene.id) ?? context.sceneIds;
+  const diagnostics: PlanDiagnostic[] = [
+    ...validateVisualPlan(
+      {
+        ...plan,
+        version: 1,
+        direction:
+          plan.direction &&
+          visualDirectionSchema.parse(
+            Object.fromEntries(
+              Object.entries(plan.direction).filter(
+                ([key]) => key in visualDirectionSchema.shape,
+              ),
+            ),
+          ),
+        scenes: plan.scenes.map((scene) =>
+          visualScenePlanSchema.parse(
+            Object.fromEntries(
+              Object.entries(scene).filter(
+                ([key]) => key in visualScenePlanSchema.shape,
+              ),
+            ),
+          ),
+        ),
+      },
+      registry,
+      sceneIds,
+    ).diagnostics,
+  ];
+  const report = (
+    severity: 'error' | 'warning',
+    code: string,
+    sceneId: string | undefined,
+    message: string,
+  ) =>
+    diagnostics.push({
+      severity,
+      code,
+      ...(sceneId ? { sceneId } : {}),
+      message,
+    });
+  const durations = new Map<string, number>();
+  if (!context.scenes)
+    report(
+      'error',
+      'plan.duration-context',
+      undefined,
+      'Supply narrative scene durations to validate scene-local ranges',
+    );
+  for (const scene of context.scenes ?? []) {
+    if (
+      durations.has(scene.id) ||
+      !Number.isSafeInteger(scene.durationFrames) ||
+      scene.durationFrames <= 0
+    )
+      report(
+        'error',
+        'plan.duration-context',
+        scene.id,
+        'Narrative scene IDs must be unique and durations positive safe integers',
+      );
+    durations.set(scene.id, scene.durationFrames);
+  }
+  if (
+    context.minimumImportantReadFrames !== undefined &&
+    (!Number.isSafeInteger(context.minimumImportantReadFrames) ||
+      context.minimumImportantReadFrames <= 0)
+  )
+    report(
+      'error',
+      'plan.read-threshold',
+      undefined,
+      'Read threshold must be a positive safe integer',
+    );
+  const boundScenes = new Set<string>();
+  const energies: string[] = [];
+  let totalShots = 0;
+  for (const scene of plan.scenes) {
+    if (boundScenes.has(scene.sceneId))
+      report(
+        'error',
+        'plan.scene-duplicate',
+        scene.id,
+        'Duplicate narrative scene binding',
+      );
+    boundScenes.add(scene.sceneId);
+    const duration = durations.get(scene.sceneId);
+    const ids = new Set<string>();
+    const readIds = new Set<string>();
+    const shots = [...scene.shots].sort(
+      (a, b) =>
+        a.range.startFrame - b.range.startFrame ||
+        (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+    );
+    let covered = 0;
+    for (const shot of shots) {
+      totalShots++;
+      if (shot.energy) energies.push(shot.energy);
+      if (ids.has(shot.id))
+        report(
+          'error',
+          'plan.shot-duplicate',
+          scene.id,
+          `Duplicate shot ID: ${shot.id}`,
+        );
+      ids.add(shot.id);
+      if (duration !== undefined && shot.range.endFrame > duration)
+        report(
+          'error',
+          'plan.shot-range',
+          scene.id,
+          `${shot.id}: shot exceeds narrative duration`,
+        );
+      if (shot.range.startFrame < covered)
+        report(
+          'error',
+          'plan.shot-overlap',
+          scene.id,
+          `${shot.id}: shots overlap`,
+        );
+      if (
+        scene.shotPartition === 'cover-scene' &&
+        shot.range.startFrame !== covered
+      )
+        report(
+          'error',
+          'plan.shot-partition',
+          scene.id,
+          `${shot.id}: declared partition has a gap or overlap`,
+        );
+      covered = Math.max(covered, shot.range.endFrame);
+      const important = shot.reads
+        .filter((read) => read.importance === 'important')
+        .sort(
+          (a, b) =>
+            a.startFrame - b.startFrame ||
+            (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+        );
+      let importantEnd = 0;
+      for (const read of important) {
+        if (read.startFrame < importantEnd)
+          report(
+            'warning',
+            'plan.read-overlap',
+            scene.id,
+            `${shot.id}: important reads compete for attention`,
+          );
+        importantEnd = Math.max(importantEnd, read.endFrame);
+      }
+      for (const read of shot.reads) {
+        if (readIds.has(read.id))
+          report(
+            'error',
+            'plan.read-duplicate',
+            scene.id,
+            `Duplicate read ID: ${read.id}`,
+          );
+        readIds.add(read.id);
+        if (
+          read.startFrame < shot.range.startFrame ||
+          read.endFrame > shot.range.endFrame
+        )
+          report(
+            'error',
+            'plan.read-range',
+            scene.id,
+            `${read.id}: read lies outside its shot`,
+          );
+        if (
+          read.importance === 'important' &&
+          context.minimumImportantReadFrames !== undefined &&
+          read.endFrame - read.startFrame < context.minimumImportantReadFrames
+        )
+          report(
+            'warning',
+            'plan.read-short',
+            scene.id,
+            `${read.id}: important read is shorter than the supplied advisory threshold`,
+          );
+      }
+    }
+    if (
+      scene.shotPartition === 'cover-scene' &&
+      duration !== undefined &&
+      covered !== duration
+    )
+      report(
+        'error',
+        'plan.shot-partition',
+        scene.id,
+        'Declared partition does not cover narrative duration',
+      );
+  }
+  for (let i = 1; i < plan.scenes.length; i++) {
+    const previous = plan.scenes[i - 1]!;
+    const current = plan.scenes[i]!;
+    const last = [...previous.shots].sort(
+      (a, b) => b.range.endFrame - a.range.endFrame,
+    )[0]!;
+    const first = [...current.shots].sort(
+      (a, b) => a.range.startFrame - b.range.startFrame,
+    )[0]!;
+    if (
+      !last.transitionOut &&
+      !first.transitionIn &&
+      !plan.direction?.transitionLanguage
+    )
+      report(
+        'warning',
+        'plan.transition-seam',
+        current.id,
+        'Scene seam has no declared transition intent',
+      );
+  }
+  if (
+    totalShots > 1 &&
+    energies.length === totalShots &&
+    new Set(energies).size === 1
+  )
+    report(
+      'warning',
+      'plan.energy-constant',
+      undefined,
+      'All declared shot energies are identical; consider whether variation serves the direction',
+    );
+  return {
+    valid: !diagnostics.some((d) => d.severity === 'error'),
+    diagnostics,
+    plan,
+  };
+}
+/** CLI-facing additive validator; the original v1 validator retains its exact behavior. */
+export function validateVersionedVisualPlan(
+  input: unknown,
+  registry: EngineRegistry,
+  context: VisualPlanValidationContext = {},
+) {
+  if (
+    input &&
+    typeof input === 'object' &&
+    'version' in input &&
+    input.version === 2
+  )
+    return validateVisualPlanV2(input, registry, context);
+  return validateVisualPlan(
+    input,
+    registry,
+    context.sceneIds ?? context.scenes?.map((scene) => scene.id),
+  );
+}

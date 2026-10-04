@@ -13,7 +13,7 @@ VideoProject owns scenes, tracks, clips, assets and narration. FrameContext driv
 ## Install
 
 ```sh
-npm install @scenewirejs/cli@1.0.1
+npm install @scenewirejs/cli@1.1.0
 npx scenewire engines
 ```
 
@@ -21,7 +21,7 @@ Install optional React, Pixi or Three dependencies in your project for those aut
 
 ## Requirements
 
-Node >=22.12.0. Source builds use pnpm 12.6.0. Browser rendering requires Chromium and FFmpeg/ffprobe on PATH. Install Chromium with `npx playwright install chromium` after installing Playwright, or set `SCENEWIRE_CHROMIUM_PATH` to an installed browser executable. Rendering never installs dependencies.
+Node >=22.12.0. Source builds use pnpm 12.8.1. Browser rendering requires Chromium and FFmpeg/ffprobe on PATH. Install Chromium with `npx playwright install chromium` after installing Playwright, or set `SCENEWIRE_CHROMIUM_PATH` to an installed browser executable. Rendering never installs dependencies.
 
 ## Quick start
 

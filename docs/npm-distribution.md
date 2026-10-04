@@ -1,6 +1,6 @@
 # Packages and source builds
 
-Node >=22.12.0 and pnpm 12.6.0 are required to build this source distribution. The workspace contains 19 publishable libraries, a publishable CLI and a private editor app. All published packages use ESM with declarations and explicit relative import extensions.
+Node >=22.12.0 and pnpm 12.8.1 are required to build this source distribution. The workspace contains 19 publishable libraries, a publishable CLI and a private editor app. All published packages use ESM with declarations and explicit relative import extensions.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -17,4 +17,4 @@ Package checks compare entrypoints against [the API contract](package-contract.j
 
 Browser operations require Chromium (Playwright-managed or SCENEWIRE_CHROMIUM_PATH), FFmpeg and ffprobe. Install optional authoring dependencies in the consuming project when using those engines. Smoke validation covers source distribution coherence and minimal installed-product behavior.
 
-The stable release identity is 1.0.1. Install the CLI with `npm install @scenewirejs/cli@1.0.1`. Package metadata points to the public source repository. A local build or pack does not publish any package.
+The 1.1.0 release source is prepared; registry publication and stable dist-tag promotion are pending. Install the CLI with `npm install @scenewirejs/cli@1.1.0`. Package metadata points to the public source repository. A local build or pack does not publish any package.

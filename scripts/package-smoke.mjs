@@ -175,7 +175,7 @@ for (const engine of ['web-dom']) {
 const optional = [
   'react@19.3.0',
   'react-dom@19.3.0',
-  'pixi.js@8.21.0',
+  'pixi.js@8.22.0',
   'three@0.186.1',
 ];
 command('npm', [

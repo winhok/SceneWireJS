@@ -6,6 +6,7 @@ import {
   transformSchema,
   visualEffectsSchema,
   motionSchema,
+  animationSchema,
   semanticMetadataSchema,
   cameraAnimationSchema,
   phraseMappingSchema,
@@ -79,6 +80,7 @@ export const patchOperationSchema = z.discriminatedUnion('op', [
           transform: transformPatchSchema.optional(),
           effects: visualEffectsSchema.partial().optional(),
           motion: z.array(motionSchema).max(16).optional(),
+          animations: z.array(animationSchema).optional(),
         })
         .strict()
         .refine(nonempty, 'Empty clip patch'),

@@ -1,6 +1,6 @@
 import { type ProductionBrief } from './../contracts/brief';
 import { type NarrativePlan } from './../contracts/narrative';
-import { type VisualPlan } from '@scenewirejs/director-core';
+import { type VisualPlan, type VisualPlanV2 } from '@scenewirejs/director-core';
 import { type Validation } from './diagnostics';
 import {
   type VideoProject,
@@ -16,7 +16,7 @@ export function validateProductionAssembly(
   projectInput: unknown,
   brief: ProductionBrief,
   narrative: NarrativePlan,
-  visual: VisualPlan,
+  visual: VisualPlan | VisualPlanV2,
 ): Validation<VideoProject> {
   const report = parse(projectSchema, projectInput);
   if (!report.value) return report;
@@ -41,7 +41,10 @@ export function validateProductionAssembly(
   if (p.scenes.length !== narrative.scenes.length)
     error(report, 'project.coverage', 'Project has extra or missing scenes');
   const sceneById = new Map(p.scenes.map((s) => [s.id, s]));
-  const visualBySceneId = new Map<string, VisualPlan['scenes'][number]>();
+  const visualBySceneId = new Map<
+    string,
+    (VisualPlan | VisualPlanV2)['scenes'][number]
+  >();
   for (const scene of visual.scenes)
     if (!visualBySceneId.has(scene.id)) visualBySceneId.set(scene.id, scene);
   const assetById = new Map(p.assets.map((a) => [a.id, a]));
