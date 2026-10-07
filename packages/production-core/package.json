@@ -1,6 +1,6 @@
 {
   "name": "@scenewirejs/production-core",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "exports": {
     ".": {
@@ -13,7 +13,9 @@
     "zod": "^4.1.11",
     "@scenewirejs/schema": "workspace:*",
     "@scenewirejs/director-core": "workspace:*",
-    "@scenewirejs/audio": "workspace:*"
+    "@scenewirejs/audio": "workspace:*",
+    "@scenewirejs/compiler": "workspace:*",
+    "@scenewirejs/runtime": "workspace:*"
   },
   "files": [
     "dist/"

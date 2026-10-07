@@ -44,7 +44,7 @@ import {Application,Graphics,Ticker} from 'pixi.js';\nimport {createPixiFrameAda
           schemaVersion: 2,
           renderer: 'web',
           engine: engineId,
-          entry: './index.ts',
+          entry: 'index.ts',
           transparent: true,
           permissions: { network: false },
         },

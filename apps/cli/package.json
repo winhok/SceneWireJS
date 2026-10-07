@@ -1,6 +1,6 @@
 {
   "name": "@scenewirejs/cli",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "bin": {
     "scenewire": "./dist/scenewire.js"
@@ -19,9 +19,11 @@
     "@scenewirejs/production-core": "workspace:*",
     "@scenewirejs/reference-core": "workspace:*",
     "@scenewirejs/renderer-web": "workspace:*",
+    "@scenewirejs/renderer-core": "workspace:*",
     "@scenewirejs/runtime": "workspace:*",
     "@scenewirejs/schema": "workspace:*",
-    "semver": "^7.8.5"
+    "semver": "^7.8.5",
+    "@scenewirejs/compiler": "workspace:*"
   },
   "files": [
     "dist/"

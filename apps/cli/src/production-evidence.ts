@@ -8,6 +8,11 @@ import {
   type CandidateBinding,
 } from '@scenewirejs/production-core';
 import { isVisualTrack, type VideoProject } from '@scenewirejs/schema';
+import {
+  canonicalLocalReference,
+  canonicalCompositionBytes,
+} from './production-path';
+import { readFile } from 'node:fs/promises';
 export async function retainedEvidencePath(root: string, path: string) {
   relativePathSchema.parse(path);
   root = await realpath(root);
@@ -43,7 +48,9 @@ export async function productionCandidate(
   const assets: ArtifactDigest[] = [];
   for (const path of [
     ...new Set(
-      project.assets.filter((a) => a.type !== 'composition').map((a) => a.src),
+      project.assets
+        .filter((a) => a.type !== 'composition')
+        .map((a) => canonicalLocalReference(a.src)),
     ),
   ].sort())
     assets.push(await hashRetainedArtifact(root, path));
@@ -64,6 +71,11 @@ export async function productionCandidate(
         c.component === 'ForeignComposition' ? c.props.assetId : '',
       ),
   );
+  const manifests = new Set(
+    project.assets
+      .filter((a) => a.type === 'composition')
+      .map((a) => canonicalLocalReference(a.src)),
+  );
   const sources = new Map<string, string>();
   let fileCount = 0;
   async function scan(path: string, depth: number) {
@@ -81,13 +93,24 @@ export async function productionCandidate(
         if (++fileCount > 10000)
           throw new Error('Composition source tree too large');
         const artifact = await hashRetainedArtifact(root, child);
-        sources.set(child, artifact.sha256);
+        sources.set(
+          child,
+          manifests.has(child)
+            ? createHash('sha256')
+                .update(
+                  canonicalCompositionBytes(
+                    await readFile(await retainedEvidencePath(root, child)),
+                  ),
+                )
+                .digest('hex')
+            : artifact.sha256,
+        );
       } else throw new Error('Composition source tree contains a special file');
     }
   }
   for (const asset of project.assets)
     if (asset.type === 'composition' && compositionIds.has(asset.id))
-      await scan(dirname(asset.src), 0);
+      await scan(dirname(canonicalLocalReference(asset.src)), 0);
   const orderedSources = [...sources].sort(([a], [b]) =>
     a < b ? -1 : a > b ? 1 : 0,
   );

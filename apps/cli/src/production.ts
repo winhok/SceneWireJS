@@ -27,6 +27,7 @@ import {
   productionCandidate,
   hashRetainedArtifact,
 } from './production-evidence';
+import { canonicalLocalReference } from './production-path';
 const json = async (path: string): Promise<unknown> =>
   JSON.parse(await readFile(path, 'utf8'));
 function inside(root: string, path: string) {
@@ -241,7 +242,9 @@ export async function productionCommand(
       if (asset.type === 'audio' || asset.type === 'image') {
         const record = assetLedger.assets.find(
           (a) =>
-            a.id === asset.id && a.path === asset.src && a.kind === asset.type,
+            a.id === asset.id &&
+            a.path === canonicalLocalReference(asset.src) &&
+            a.kind === asset.type,
         );
         if (!record)
           diagnostics.push({
@@ -254,7 +257,10 @@ export async function productionCommand(
     for (const asset of assembly.value.assets) {
       if (asset.type === 'audio' || asset.type === 'image') {
         try {
-          const path = await retainedPath(root, asset.src);
+          const path = await retainedPath(
+            root,
+            canonicalLocalReference(asset.src),
+          );
           if (
             !(await lstat(path)).isFile() ||
             (await readFile(path)).byteLength === 0

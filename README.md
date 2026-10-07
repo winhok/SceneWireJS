@@ -1,6 +1,8 @@
 # SceneWire
 
-**Code first. Pixels last.**
+**Motion Engineering for Coding Agents.**
+
+The v1.2 source candidate adds verified local incremental production. v1.2 is not publicly released; Quick Start remains on the released v1.1.0 package. See [the candidate production contract](docs/incremental-production.md).
 
 ## What it is
 

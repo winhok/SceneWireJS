@@ -1,7 +1,9 @@
+import { productionBuildCommand } from './production-build';
 import { stripFrames, parseCrop, reviewSvg } from './review-tools';
 import { projectDiagnostics } from '@scenewirejs/schema';
 import { referenceCommand } from './reference';
 import { productionCommand } from './production';
+import { productionObserveCommand } from './production-observe';
 import { validateVersionedVisualPlan } from '@scenewirejs/director-core';
 import {
   frameTimeoutFlags,
@@ -82,6 +84,16 @@ async function main(args: string[]) {
     const result = await referenceCommand(command, args.slice(1));
     emit(result);
     if ('valid' in result && !result.valid) process.exitCode = 1;
+    return;
+  }
+  if (command === 'production-build') {
+    if (!file) throw new Error('Production command requires a manifest');
+    process.stdout.write(await productionBuildCommand(file, rest));
+    return;
+  }
+  if (command === 'production-status' || command === 'production-explain') {
+    if (!file) throw new Error('Production command requires a manifest');
+    process.stdout.write(await productionObserveCommand(command, file, rest));
     return;
   }
   if (

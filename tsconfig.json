@@ -11,6 +11,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "@scenewirejs/web-runtime": ["./packages/web-runtime/src/index.ts"],
       "@scenewirejs/domain-developer": [
@@ -52,11 +53,5 @@
       ]
     }
   },
-  "include": [
-    "packages/**/*.ts",
-    "packages/**/*.tsx",
-    "apps/cli/**/*.ts",
-    "apps/editor/src/**/*.ts",
-    "apps/editor/src/**/*.tsx"
-  ]
+  "include": ["apps", "packages", "tests", "examples", "*.ts"]
 }
