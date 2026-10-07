@@ -4,8 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       expected_sha:
-        description: Frozen reviewed public source SHA (40 lowercase hex)
+        description: Exact reviewed workflow SHA (40 lowercase hex)
         required: true
+        type: string
+      release_source_sha:
+        description: Original published package source SHA (recovery only)
+        required: false
         type: string
       expected_version:
         description: Frozen expected npm version
@@ -23,7 +27,7 @@ on:
         description: Reviewed immutable release operation
         required: true
         type: choice
-        options: [prepare, candidate, promote]
+        options: [prepare, candidate, promote, recovery-promote]
 permissions:
   contents: read
   id-token: write
@@ -133,3 +137,77 @@ jobs:
           node scripts/release/dispatch-candidate.mjs "$CANDIDATE_FILE" "$EXPECTED_SHA" "$EXPECTED_VERSION" "$INVENTORY_SHA256"
           NPM_CLI="$(npm root --global)/npm/bin/npm-cli.js"
           node scripts/release/release.mjs promote "$CANDIDATE_FILE" "$EXPECTED_SHA" "$EXPECTED_VERSION" "$INVENTORY_SHA256" .build/npm "$NPM_CLI"
+  recovery-verify:
+    if: inputs.operation == 'recovery-promote' && github.repository == 'winhok/SceneWireJS' && github.sha == inputs.expected_sha && inputs.release_source_sha == '1e6e660829cb95c8c25f459ee7b2d193832a2709' && inputs.expected_version == '1.2.0'
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.expected_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: |
+          npm install --global npm@12.2.0 corepack@0.36.0
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm build:cli
+          pnpm package:check
+          pnpm package:pack
+      - name: verify original source with exact recovery workflow binding
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          RELEASE_SOURCE_SHA: ${{ inputs.release_source_sha }}
+          INVENTORY_SHA256: ${{ inputs.inventory_sha256 }}
+          CANDIDATE_JSON: ${{ inputs.candidate_json }}
+        run: |
+          CANDIDATE_FILE="$RUNNER_TEMP/scenewire-release-candidate.json"
+          node scripts/release/dispatch-candidate.mjs "$CANDIDATE_FILE" "$RELEASE_SOURCE_SHA" 1.2.0 "$INVENTORY_SHA256"
+          NPM_CLI="$(npm root --global)/npm/bin/npm-cli.js"
+          node scripts/release/recovery-promote.mjs verify "$CANDIDATE_FILE" "$EXPECTED_SHA" "$INVENTORY_SHA256" .build/npm "$NPM_CLI" recovery-verify.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: recovery-verify
+          path: recovery-verify.json
+          if-no-files-found: error
+  recovery-promote:
+    if: inputs.operation == 'recovery-promote' && github.repository == 'winhok/SceneWireJS' && github.sha == inputs.expected_sha && inputs.release_source_sha == '1e6e660829cb95c8c25f459ee7b2d193832a2709' && inputs.expected_version == '1.2.0'
+    needs: recovery-verify
+    environment: npm-production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.expected_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - run: |
+          npm install --global npm@12.2.0 corepack@0.36.0
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm build:cli
+          pnpm package:check
+          pnpm package:pack
+      - name: promote original source with exact recovery workflow binding
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          RELEASE_SOURCE_SHA: ${{ inputs.release_source_sha }}
+          INVENTORY_SHA256: ${{ inputs.inventory_sha256 }}
+          CANDIDATE_JSON: ${{ inputs.candidate_json }}
+        run: |
+          CANDIDATE_FILE="$RUNNER_TEMP/scenewire-release-candidate.json"
+          node scripts/release/dispatch-candidate.mjs "$CANDIDATE_FILE" "$RELEASE_SOURCE_SHA" 1.2.0 "$INVENTORY_SHA256"
+          NPM_CLI="$(npm root --global)/npm/bin/npm-cli.js"
+          node scripts/release/recovery-promote.mjs promote "$CANDIDATE_FILE" "$EXPECTED_SHA" "$INVENTORY_SHA256" .build/npm "$NPM_CLI" recovery-promote.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: recovery-promote
+          path: recovery-promote.json
+          if-no-files-found: error

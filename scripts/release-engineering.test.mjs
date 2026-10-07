@@ -206,7 +206,7 @@ test('canonical audited export copies are exact and live operations fail closed'
     'contents: read',
     "node-version: '24'",
     'npm@12.2.0',
-    'options: [prepare, candidate, promote]',
+    'options: [prepare, candidate, promote, recovery-promote]',
     'pnpm package:pack',
   ])
     assert.ok(workflow.includes(required), required);
@@ -655,7 +655,7 @@ test('registry-only consumer uses empty state, exact public versions and rejects
     'PASS',
   );
   assert.equal(calls.length, 22);
-  assert.deepEqual(calls.at(-1).args, ['--version']);
+  assert.deepEqual(calls.at(-1).args, ['engines', '--json']);
   assert.throws(
     () =>
       registryConsumer(candidate, '/unused/npm-cli.js', {
@@ -702,15 +702,15 @@ test('external dispatch inventory preserves frozen bytes without source-commit s
     assert.ok(!workflow.includes('release/candidate.json'));
     assert.equal(
       workflow.split('CANDIDATE_JSON: ${{ inputs.candidate_json }}').length - 1,
-      3,
+      5,
     );
     assert.equal(
       workflow.split('node scripts/release/dispatch-candidate.mjs').length - 1,
-      3,
+      5,
     );
     assert.equal(
       workflow.split('"$CANDIDATE_FILE" "$EXPECTED_SHA"').length - 1,
-      6,
+      8,
     );
     assert.ok(workflow.includes('github.sha == inputs.expected_sha'));
   } finally {
@@ -800,4 +800,224 @@ test('each release job builds exports before checking and packing', () => {
       job,
     );
   }
+});
+
+test('recovery separates artifact and workflow identities, gates all writes and skips exact latest tags', async () => {
+  const { recoveryPromote, releaseSourceSha } =
+    await import('./release/recovery-promote.mjs');
+  const workflowSha = 'b'.repeat(40);
+  const env = {
+    GITHUB_ACTIONS: 'true',
+    GITHUB_SERVER_URL: 'https://github.com',
+    GITHUB_REPOSITORY: repository,
+    GITHUB_SHA: workflowSha,
+    GITHUB_WORKFLOW_SHA: workflowSha,
+    RUNNER_ENVIRONMENT: 'github-hosted',
+    GITHUB_REF: 'refs/heads/release/v1.2.0',
+    GITHUB_WORKFLOW_REF: `${repository}/.github/workflows/npm-release.yml@refs/heads/release/v1.2.0`,
+  };
+  const candidate = {
+    repository,
+    publicSha: releaseSourceSha,
+    version: '1.2.0',
+    packages: packages.map((name) => ({ name })),
+  };
+  const latest = new Map(
+    packages.map((name, i) => [name, i < 3 ? '1.2.0' : '1.1.0']),
+  );
+  const exchanged = [],
+    writes = [],
+    gates = [];
+  const options = {
+    workflowSha,
+    env,
+    npmCli: '/unused/npm-cli.js',
+    reconcile: async (c, { tag }) => {
+      assert.equal(c.publicSha, releaseSourceSha);
+      gates.push(tag);
+      return { rows: [] };
+    },
+    verify: async (c) => {
+      assert.equal(c.publicSha, releaseSourceSha);
+      gates.push('provenance');
+    },
+    consumer: () => {
+      gates.push('consumer');
+      return 'PASS';
+    },
+    exchange: async (name, sha) => {
+      assert.equal(sha, workflowSha);
+      assert.ok(gates.includes('consumer'));
+      exchanged.push(name);
+      return 'MOCK_OIDC';
+    },
+    fetchImpl: async (url, options) => {
+      if (options.method === 'GET') {
+        const name = decodeURIComponent(new URL(url).pathname.slice(1));
+        return {
+          ok: true,
+          json: async () => ({ 'dist-tags': { latest: latest.get(name) } }),
+        };
+      }
+      assert.equal(options.method, 'PUT');
+      assert.ok(url.endsWith('/dist-tags/latest'));
+      assert.equal(options.body, '"1.2.0"');
+      const name = decodeURIComponent(new URL(url).pathname.split('/')[3]);
+      latest.set(name, '1.2.0');
+      writes.push(name);
+      return { ok: true };
+    },
+  };
+  const dry = await recoveryPromote(candidate, [], options);
+  assert.equal(dry.operation, 'verify');
+  assert.equal(writes.length, 0);
+  assert.equal(exchanged.length, 0);
+  const promoted = await recoveryPromote(candidate, [], {
+    ...options,
+    write: true,
+  });
+  assert.equal(promoted.result, 'PASS');
+  assert.equal(writes.length, 17);
+  assert.equal(exchanged.length, 17);
+  const repeated = await recoveryPromote(candidate, [], {
+    ...options,
+    write: true,
+  });
+  assert.equal(repeated.writes.length, 0);
+  assert.equal(writes.length, 17);
+  for (const invalid of [
+    { publicSha: workflowSha },
+    { version: '1.2.1' },
+    { packages: candidate.packages.slice(1) },
+  ])
+    await assert.rejects(
+      recoveryPromote({ ...candidate, ...invalid }, [], {
+        ...options,
+        write: true,
+      }),
+      /binding/,
+    );
+  await assert.rejects(
+    recoveryPromote(candidate, [], {
+      ...options,
+      write: true,
+      env: { ...env, GITHUB_REF: 'refs/heads/main' },
+    }),
+    /binding/,
+  );
+  for (const failure of [
+    {
+      verify: async () => {
+        throw Error('provenance mismatch');
+      },
+    },
+    { consumer: () => 'FAIL' },
+    {
+      fetchImpl: async () => ({
+        ok: true,
+        json: async () => ({ 'dist-tags': { latest: '1.3.0' } }),
+      }),
+    },
+    {
+      fetchImpl: async () => {
+        throw Error('network');
+      },
+    },
+  ]) {
+    await assert.rejects(
+      recoveryPromote(candidate, [], { ...options, ...failure, write: true }),
+    );
+    assert.equal(writes.length, 17);
+  }
+});
+
+test('recovery stops ambiguous PUT and safely resumes only after exact tag reconciliation', async () => {
+  const { recoveryPromote, releaseSourceSha } =
+    await import('./release/recovery-promote.mjs');
+  const workflowSha = 'b'.repeat(40),
+    candidate = {
+      repository,
+      publicSha: releaseSourceSha,
+      version: '1.2.0',
+      packages: packages.map((name) => ({ name })),
+    };
+  const env = {
+    GITHUB_ACTIONS: 'true',
+    GITHUB_SERVER_URL: 'https://github.com',
+    GITHUB_REPOSITORY: repository,
+    GITHUB_SHA: workflowSha,
+    GITHUB_WORKFLOW_SHA: workflowSha,
+    RUNNER_ENVIRONMENT: 'github-hosted',
+    GITHUB_REF: 'refs/heads/release/v1.2.0',
+    GITHUB_WORKFLOW_REF: `${repository}/.github/workflows/npm-release.yml@refs/heads/release/v1.2.0`,
+  };
+  const latest = new Map(packages.map((name) => [name, '1.1.0'])),
+    writes = [];
+  let fail = true;
+  const options = {
+    workflowSha,
+    env,
+    write: true,
+    reconcile: async () => ({ rows: [] }),
+    verify: async () => {},
+    consumer: () => 'PASS',
+    exchange: async () => 'MOCK_OIDC',
+    fetchImpl: async (url, options) => {
+      if (options.method === 'GET') {
+        const name = decodeURIComponent(new URL(url).pathname.slice(1));
+        return {
+          ok: true,
+          json: async () => ({ 'dist-tags': { latest: latest.get(name) } }),
+        };
+      }
+      const name = decodeURIComponent(new URL(url).pathname.split('/')[3]);
+      latest.set(name, '1.2.0');
+      writes.push(name);
+      if (fail) throw Error('disconnect');
+      return { ok: true };
+    },
+  };
+  await assert.rejects(
+    recoveryPromote(candidate, [], options),
+    /ambiguous latest mutation/,
+  );
+  assert.equal(writes.length, 1);
+  fail = false;
+  await recoveryPromote(candidate, [], options);
+  assert.equal(writes.length, 20);
+  assert.equal(new Set(writes).size, 20);
+});
+
+test('recovery read-only gate precedes protected environment and never invokes package submission', () => {
+  const workflow = readFileSync(
+    new URL('../.github/workflows/npm-release.yml', import.meta.url),
+    'utf8',
+  );
+  const readonly = workflow
+    .split('  recovery-verify:\n')[1]
+    .split('  recovery-promote:\n')[0];
+  const write = workflow.split('  recovery-promote:\n')[1];
+  assert.ok(!readonly.includes('environment: npm-production'));
+  assert.ok(
+    write.includes('needs: recovery-verify') &&
+      write.includes('environment: npm-production'),
+  );
+  assert.ok(
+    readonly.includes('recovery-promote.mjs verify') &&
+      write.includes('recovery-promote.mjs promote'),
+  );
+  for (const block of [readonly, write])
+    assert.ok(
+      block.includes('inputs.release_source_sha') &&
+        block.includes('github.sha == inputs.expected_sha'),
+    );
+  const source = readFileSync(
+    new URL('./release/recovery-promote.mjs', import.meta.url),
+    'utf8',
+  );
+  assert.ok(
+    !/candidateSubmission|guardedSubmission|canonicalOidcSubmit|publishCanonical/.test(
+      source,
+    ),
+  );
 });

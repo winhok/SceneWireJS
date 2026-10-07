@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 const baseline = {
+  'scripts/release/recovery-promote.mjs':
+    '67f2dd8cf54c14c1efeb20985b8e8c3d794854f340c4f46f4a5af9159c38fd82',
   '.agents/skills/scenewire-create/SKILL.md':
     '846107fb36cb4a6fbc52f81309f80baed4ed6019ef1d72e1230bc2ac435a6c76',
   '.agents/skills/scenewire-direct/SKILL.md':
@@ -21,7 +23,7 @@ const baseline = {
   '.gitattributes':
     'a79691a93b46e49ce460c26ef22afcc03d6eca1e63bf2edbc20e96159510f6c9',
   '.github/workflows/npm-release.yml':
-    'c022a717ee3cc789f0b7bdbf6721dc06b33ae97eaa05efbc7c2506d534840429',
+    'afc67fe7f8a8141cee32582998f0f00cbfb3d69d9f3f808d1bc249a32a813a6c',
   '.gitignore':
     'db035699cbbf621a6200ef559a0ad01465e85b2ba4656bda7e1d463fbce7907f',
   '.prettierignore':
@@ -578,7 +580,7 @@ const baseline = {
   'scripts/release/prepare.mjs':
     '0253dd833a152ad6abffc161c35f0063b8938c541ffc0e0e8db80c70bbf8f913',
   'scripts/release/qualify.mjs':
-    '5d292b5408c97a3e94976d3b980425e462526f46e359ef27523f8e4e912184da',
+    '7fefbdbd3de37cd8d27b11cd4fe87be64b896a5b8d3b83ff6f1a91201dbde18b',
   'scripts/release/readback.mjs':
     '45c2c5afd7962fbe74d3506692c677070283bedee1fa1752fc9bfb5e1ec0cecc',
   'scripts/release/release.mjs':

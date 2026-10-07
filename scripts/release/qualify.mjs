@@ -156,7 +156,7 @@ export function registryConsumer(
     }
     run(
       join(root, 'node_modules', '.bin', 'scenewire'),
-      ['--version'],
+      ['engines', '--json'],
       options,
     );
     return 'PASS';
