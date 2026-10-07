@@ -2,7 +2,7 @@
 
 **Motion Engineering for Coding Agents.**
 
-The v1.2 source candidate adds verified local incremental production. v1.2 is not publicly released; Quick Start remains on the released v1.1.0 package. See [the candidate production contract](docs/incremental-production.md).
+SceneWire v1.2.0 is released with verified local incremental production. See [the production contract](docs/incremental-production.md).
 
 ## What it is
 
@@ -15,7 +15,7 @@ VideoProject owns scenes, tracks, clips, assets and narration. FrameContext driv
 ## Install
 
 ```sh
-npm install @scenewirejs/cli@1.1.0
+npm install @scenewirejs/cli@1.2.0
 npx scenewire engines
 ```
 

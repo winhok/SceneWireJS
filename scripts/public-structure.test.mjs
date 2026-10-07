@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 const baseline = {
+  '.github/workflows/pages.yml':
+    'ca0b9e0111c8317524b633ef9a991c7f5a7272c71d868a7e096b0fdbd04b9a39',
   'scripts/release/recovery-promote.mjs':
     '67f2dd8cf54c14c1efeb20985b8e8c3d794854f340c4f46f4a5af9159c38fd82',
   '.agents/skills/scenewire-create/SKILL.md':
@@ -32,7 +34,7 @@ const baseline = {
     '32dcd743a0ffca59a737c87abcfcc3f57a0cede5cedb6a8b1b68d32a3b6d4506',
   LICENSE: 'e7cf3e835fe0021fd7cbacc3e01e8bf5c5c36bf703125cacd10c6ab956fa29e7',
   'README.md':
-    'dccc083502a7a13280e30e36e80272a1cf8af5e10dd9886a17f02479b024471b',
+    'a92be52347820d6d1a5a8582f28251bd7fcbd32ab2e716ff2dfff9307efeaede',
   'apps/cli/LICENSE':
     'e7cf3e835fe0021fd7cbacc3e01e8bf5c5c36bf703125cacd10c6ab956fa29e7',
   'apps/cli/REVIEW_TOOLS.md':
@@ -128,7 +130,7 @@ const baseline = {
   'apps/website/src/demo.ts':
     '537cb62c849a55150488f91392d2d3ed1776b2bfda608743d6660bca9d897067',
   'apps/website/src/main.tsx':
-    'dfaff54430b3729e3352dbf11ad78f1e4922fdd9942fccfb4b295db034c0939a',
+    'dd5be458652aefcc4d08e84d93d3893fc5f1e79f66ff90af0e6b3db3348105c6',
   'apps/website/src/style.css':
     '38aeeb190cf71060eb006ccb6d853a930ad669df40602e6ea78bbc88707ea371',
   'apps/website/vite.config.ts':
