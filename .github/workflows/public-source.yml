@@ -36,6 +36,10 @@ jobs:
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm package:check
+      - name: Public structural integrity and release engineering fixtures
+        run: node --test scripts/public-structure.test.mjs scripts/release-engineering.test.mjs
+      - name: Website build
+        run: pnpm --dir apps/website build
       - run: node apps/cli/dist/scenewire.js engines
       - name: Install renderer prerequisites
         run: |
