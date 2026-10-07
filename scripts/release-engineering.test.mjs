@@ -243,7 +243,9 @@ test('OIDC adapter binds audience/repo/SHA/workflow/environment and never falls 
     repository,
     repository_visibility: 'public',
     sha,
-    sub: `repo:${repository}:environment:npm-production`,
+    sub: 'repo:winhok@56586247/SceneWireJS@1394415814:environment:npm-production',
+    repository_owner_id: '56586247',
+    repository_id: '1394415814',
     workflow_ref: env.GITHUB_WORKFLOW_REF,
     workflow_sha: sha,
   };
@@ -273,6 +275,28 @@ test('OIDC adapter binds audience/repo/SHA/workflow/environment and never falls 
     }),
     /fallback/,
   );
+  for (const invalid of [
+    { sub: `repo:${repository}:environment:npm-production` },
+    { sub: 'repo:winhok@1/SceneWireJS@1394415814:environment:npm-production' },
+    { sub: 'repo:winhok@56586247/SceneWireJS@1:environment:npm-production' },
+    { sub: 'repo:winhok@56586247/SceneWireJS@1394415814:environment:other' },
+    { repository_owner_id: '1' },
+    { repository_id: '1' },
+  ]) {
+    let exchanges = 0;
+    const invalidJwt = `header.${Buffer.from(JSON.stringify({ ...claims, ...invalid })).toString('base64url')}.signature`;
+    await assert.rejects(
+      exchangeToken(packages[0], sha, {
+        env,
+        fetchImpl: async (_url, options) => {
+          if (options.method === 'POST') exchanges += 1;
+          return { ok: true, json: async () => ({ value: invalidJwt }) };
+        },
+      }),
+      /OIDC claim binding mismatch/,
+    );
+    assert.equal(exchanges, 0);
+  }
   assert.deepEqual(activationPolicy, { candidate: true, promote: true });
   const f = fixture();
   try {

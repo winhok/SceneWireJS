@@ -574,7 +574,7 @@ const baseline = {
   'scripts/release/npm-publish-payload-audit.mjs':
     '6e1e0b4081b8635961ffae4fae0352d81943d6b849138fe59f4449dd1a83e825',
   'scripts/release/oidc.mjs':
-    'f5c7a7da74901a591ecaa7b4419e03f27065b125e68ad91af6a16f319a270127',
+    '96d3733739567f02def04a4c3839e9295e4b4f7ddf375b176d627464724e2179',
   'scripts/release/prepare.mjs':
     '0253dd833a152ad6abffc161c35f0063b8938c541ffc0e0e8db80c70bbf8f913',
   'scripts/release/qualify.mjs':

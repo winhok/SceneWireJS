@@ -13,6 +13,10 @@ export const activationPolicy = Object.freeze({
   promote: true,
 });
 const registry = 'https://registry.npmjs.org/';
+// GitHub API verified immutable identities for the public release repository.
+const ownerId = '56586247';
+const repositoryId = '1394415814';
+const subject = `repo:winhok@${ownerId}/SceneWireJS@${repositoryId}:environment:${environment}`;
 export function assertWorkflow(env, sha) {
   if (
     env.GITHUB_ACTIONS !== 'true' ||
@@ -73,7 +77,9 @@ export async function exchangeToken(
     claims.repository !== repository ||
     claims.repository_visibility !== 'public' ||
     claims.sha !== sha ||
-    claims.sub !== `repo:${repository}:environment:${environment}` ||
+    claims.sub !== subject ||
+    claims.repository_owner_id !== ownerId ||
+    claims.repository_id !== repositoryId ||
     claims.workflow_ref !== env.GITHUB_WORKFLOW_REF ||
     claims.workflow_sha !== sha
   )
