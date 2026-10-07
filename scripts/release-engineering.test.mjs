@@ -756,3 +756,24 @@ const auditedHashes = {
   'npm-publish-payload-audit.mjs':
     '6e1e0b4081b8635961ffae4fae0352d81943d6b849138fe59f4449dd1a83e825',
 };
+
+test('each release job builds exports before checking and packing', () => {
+  const workflow = readFileSync(
+    new URL('../.github/workflows/npm-release.yml', import.meta.url),
+    'utf8',
+  );
+  for (const job of ['prepare', 'candidate', 'promote']) {
+    const block = workflow
+      .split('  ' + job + ':\n')[1]
+      ?.split(/\n  [a-z]+:\n/)[0];
+    assert.ok(block, job);
+    const install = block.indexOf('pnpm install --frozen-lockfile');
+    const build = block.indexOf('pnpm build:cli');
+    const check = block.indexOf('pnpm package:check');
+    const pack = block.indexOf('pnpm package:pack');
+    assert.ok(
+      install >= 0 && build > install && check > build && pack > check,
+      job,
+    );
+  }
+});

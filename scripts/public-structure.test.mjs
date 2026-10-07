@@ -21,7 +21,7 @@ const baseline = {
   '.gitattributes':
     'a79691a93b46e49ce460c26ef22afcc03d6eca1e63bf2edbc20e96159510f6c9',
   '.github/workflows/npm-release.yml':
-    'cae78f168376c76722560428fa38a810fd981e3e9ec22493ed896e286eb3be5a',
+    'c022a717ee3cc789f0b7bdbf6721dc06b33ae97eaa05efbc7c2506d534840429',
   '.gitignore':
     'db035699cbbf621a6200ef559a0ad01465e85b2ba4656bda7e1d463fbce7907f',
   '.prettierignore':
