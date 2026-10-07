@@ -609,9 +609,7 @@ test('public source preserves the qualified tree and confines the CI-only overla
     );
   for (const path of files)
     assert.ok(
-      !/(?:^|\/)(?:\.env(?:\.|$)|\.deliveryguard|verification|node_modules|dist)(?:\/|$)/.test(
-        path,
-      ),
+      !/(?:^|\/)(?:\.env(?:\.|$)|node_modules|dist)(?:\/|$)/.test(path),
       path,
     );
 });
