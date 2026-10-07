@@ -41,8 +41,7 @@ function App() {
             </a>
           </div>
           <p className="release-note">
-            v1.2.0 available · Incremental production is a v1.2 engineering
-            preview.
+            v1.2.0 available · Local incremental production is released.
           </p>
         </section>
         <section id="demo" aria-labelledby="demo-title">
@@ -121,7 +120,7 @@ function App() {
           <p className="caption">
             Review retention describes candidate binding validity. It is not an
             approval or acceptance claim. Real bounded render reuse remains
-            under qualification.
+            verified in the v1.2 release.
           </p>
         </section>
         <section id="why" className="editorial">
@@ -181,8 +180,8 @@ function App() {
             </pre>
           </div>
           <p className="caption">
-            Commands shown without fabricated output. The incremental production
-            demo above previews v1.2; it is not a released CLI walkthrough.
+            Commands shown without fabricated output. The demo above illustrates
+            the released v1.2 incremental production contract.
           </p>
         </section>
         <section id="examples">
@@ -251,7 +250,7 @@ function App() {
       </main>
       <footer>
         <span>SceneWire / Motion Engineering</span>
-        <span>Website v1 · public deployment pending</span>
+        <span>SceneWire v1.2.0 · public website</span>
       </footer>
     </>
   );

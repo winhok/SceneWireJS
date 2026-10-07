@@ -130,7 +130,7 @@ const baseline = {
   'apps/website/src/demo.ts':
     '537cb62c849a55150488f91392d2d3ed1776b2bfda608743d6660bca9d897067',
   'apps/website/src/main.tsx':
-    'dd5be458652aefcc4d08e84d93d3893fc5f1e79f66ff90af0e6b3db3348105c6',
+    '44fcd3a12f457b66595d970bea14dca396e9a0dccb67911c8ff95b8e869c0a95',
   'apps/website/src/style.css':
     '38aeeb190cf71060eb006ccb6d853a930ad669df40602e6ea78bbc88707ea371',
   'apps/website/vite.config.ts':
