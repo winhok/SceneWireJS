@@ -1,6 +1,6 @@
 {
   "name": "@scenewirejs/renderer-canvas",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "module",
   "exports": {
     ".": {
@@ -10,8 +10,8 @@
     }
   },
   "dependencies": {
-    "@scenewirejs/runtime": "workspace:*",
-    "@scenewirejs/renderer-core": "workspace:*"
+    "@scenewirejs/runtime": "1.3.0",
+    "@scenewirejs/renderer-core": "1.3.0"
   },
   "files": [
     "dist/"

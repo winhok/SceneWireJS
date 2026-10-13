@@ -1,6 +1,6 @@
 {
   "name": "@scenewirejs/domain-education",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "module",
   "exports": {
     ".": {
@@ -10,8 +10,8 @@
     }
   },
   "dependencies": {
-    "@scenewirejs/schema": "workspace:*",
-    "@scenewirejs/runtime": "workspace:*"
+    "@scenewirejs/schema": "1.3.0",
+    "@scenewirejs/runtime": "1.3.0"
   },
   "files": [
     "dist/"

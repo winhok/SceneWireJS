@@ -56,3 +56,11 @@ export {
   validateRepairCase,
   type RepairValidationContext,
 } from './validation/repair';
+
+// Shared existing identity primitives; VideoBench interpretation remains in reference-core.
+export { canonicalDigest, canonicalJson } from './incremental/digest';
+export {
+  candidateIdentity,
+  outputIdentity,
+  environmentSchema as rasterEnvironmentSchema,
+} from './production/identity';

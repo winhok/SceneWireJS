@@ -39,6 +39,7 @@ export async function renderChunks({
         const chunkIndex = next++,
           chunk = plan.chunks[chunkIndex]!;
         const offset = session.metrics.capturesMs.length;
+        const chunkStarted = performance.now();
         onActive(1);
         try {
           onProgress();
@@ -88,6 +89,13 @@ export async function renderChunks({
           onFailure(
             new RenderError({
               ...diagnostic,
+              timing: {
+                ...diagnostic.timing,
+                phaseElapsedMs:
+                  diagnostic.timing?.phaseElapsedMs ??
+                  performance.now() - chunkStarted,
+                chunkElapsedMs: performance.now() - chunkStarted,
+              },
               frame: belongsToChunk ? diagnostic.frame : null,
               engine: belongsToChunk ? diagnostic.engine : 'project',
               worker,

@@ -1,3 +1,4 @@
+import { sep, isAbsolute } from 'node:path';
 import { flags } from './options';
 import { limits } from './options';
 import { required } from './options';
@@ -84,7 +85,7 @@ export async function compareCommand(
     if (asset.type !== 'composition') continue;
     const folder = dirname(resolve(projectRoot, asset.src));
     const rel = relative(projectRoot, folder);
-    if (rel.startsWith('../') || rel === '..')
+    if (rel.startsWith(`..${sep}`) || rel === '..' || isAbsolute(rel))
       throw new MediaError(
         'reference.path',
         'Composition directory escapes project',

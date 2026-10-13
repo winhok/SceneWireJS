@@ -94,6 +94,10 @@ export default defineConfig({
       name: 'owned-skills',
       closeBundle() {
         mkdirSync(resolve('dist/skills'), { recursive: true });
+        cpSync(
+          resolve('../../THIRD_PARTY_NOTICES.md'),
+          resolve('dist/THIRD_PARTY_NOTICES.md'),
+        );
         for (const skill of skills) {
           cpSync(
             resolve('../../.agents/skills', skill),

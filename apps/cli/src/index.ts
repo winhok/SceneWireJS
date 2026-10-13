@@ -1,4 +1,5 @@
 import { productionBuildCommand } from './production-build';
+import { videoBenchCommand } from './videobench';
 import { stripFrames, parseCrop, reviewSvg } from './review-tools';
 import { projectDiagnostics } from '@scenewirejs/schema';
 import { referenceCommand } from './reference';
@@ -41,6 +42,12 @@ let rendererError:
   typeof import('@scenewirejs/renderer-web').RenderError | undefined;
 async function main(args: string[]) {
   const [command, file, ...rest] = args;
+  if (command === 'videobench') {
+    const result = await videoBenchCommand(args.slice(1));
+    emit(result);
+    if ('valid' in result && !result.valid) process.exitCode = 1;
+    return;
+  }
   if (command === 'init') {
     const result = await initProject(args.slice(1));
     if (args.includes('--json')) emit(result);

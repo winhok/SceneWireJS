@@ -1,6 +1,6 @@
 {
   "name": "@scenewirejs/patch",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "module",
   "exports": {
     ".": {
@@ -10,9 +10,9 @@
     }
   },
   "dependencies": {
-    "@scenewirejs/schema": "workspace:*",
-    "@scenewirejs/runtime": "workspace:*",
-    "@scenewirejs/compiler": "workspace:*",
+    "@scenewirejs/schema": "1.3.0",
+    "@scenewirejs/runtime": "1.3.0",
+    "@scenewirejs/compiler": "1.3.0",
     "zod": "^4.1.11"
   },
   "files": [

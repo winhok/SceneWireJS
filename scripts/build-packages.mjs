@@ -75,6 +75,7 @@ for (const directory of directories) {
   const dist = join(directory, 'dist');
   rmSync(dist, { recursive: true, force: true });
   mkdirSync(dist, { recursive: true });
+  cpSync('THIRD_PARTY_NOTICES.md', join(dist, 'THIRD_PARTY_NOTICES.md'));
   cpSync(join(declarationRoot, directory, 'src'), dist, { recursive: true });
   for (const file of sources(join(directory, 'src'))) {
     const output = join(

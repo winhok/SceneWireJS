@@ -1,3 +1,4 @@
+import { sep } from 'node:path';
 import { readFile, realpath, mkdir, writeFile, lstat } from 'node:fs/promises';
 import { resolve, dirname, relative, isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -32,7 +33,7 @@ const json = async (path: string): Promise<unknown> =>
   JSON.parse(await readFile(path, 'utf8'));
 function inside(root: string, path: string) {
   const rel = relative(root, path);
-  if (rel === '..' || rel.startsWith('../') || isAbsolute(rel))
+  if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel))
     throw new Error('Production path escapes root');
   return path;
 }

@@ -37,7 +37,7 @@ jobs:
       - run: pnpm format:check
       - run: pnpm package:check
       - name: Public structural integrity and release engineering fixtures
-        run: node --test scripts/public-structure.test.mjs scripts/release-engineering.test.mjs
+        run: node --test scripts/public-structure.test.mjs scripts/release-engineering.test.mjs scripts/videobench-review.test.mjs
       - name: Website build
         run: pnpm --dir apps/website build
       - run: node apps/cli/dist/scenewire.js engines
@@ -60,7 +60,7 @@ jobs:
           cat "$profile_file"
           sudo install -m 0644 "$profile_file" /etc/apparmor.d/scenewire-managed-chromium
           sudo apparmor_parser -r /etc/apparmor.d/scenewire-managed-chromium
-      - name: Packed consumer and four installed engines
+      - name: Packed consumer, installed VideoBench v1.3 and four engines
         run: pnpm package:smoke
 
   compatibility:

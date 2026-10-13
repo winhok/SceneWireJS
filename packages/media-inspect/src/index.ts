@@ -8,6 +8,7 @@ export { probe } from './probe';
 export { tailTime } from './frames';
 export { coarseTimes } from './frames';
 export { frameBytes } from './frames';
+export { frameBytesBatch } from './frames';
 export { grab } from './frames';
 export { writeJson } from './evidence';
 export { initReference } from './evidence';
@@ -21,3 +22,10 @@ export { motionFromGray } from './motion';
 export { waveform } from './waveform';
 export { waveformSvg } from './waveform';
 export { inspectFinalMedia, type FinalMediaQc } from './final-media';
+export {
+  pngPixels,
+  comparePixels,
+  sameEnvironmentTolerance,
+  pngGrid,
+  encodeRgbPng,
+} from './png';

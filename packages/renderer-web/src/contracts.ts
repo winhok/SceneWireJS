@@ -11,6 +11,15 @@ export interface RenderDiagnostic {
   encoder?: import('./export/encoder').EncoderDiagnostic;
   worker?: number;
   chunk?: string;
+  captureBackend?: CaptureBackendId;
+  timing?: {
+    phaseElapsedMs: number;
+    frameElapsedMs?: number;
+    chunkElapsedMs?: number;
+    seekTotalMs?: number;
+    mediaDecodeMs?: number;
+    paintFlushMs?: number;
+  };
   engine?: string;
   renderer: string;
   composition: string;

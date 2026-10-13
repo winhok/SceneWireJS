@@ -58,6 +58,15 @@ export class WebRendererSession implements RendererSession {
   }
   private currentFrame: number | null = null;
   private phase = 'prepare';
+  private phaseStarted = performance.now();
+  private frameStarted: number | undefined;
+  private frameTiming:
+    | {
+        seekTotalMs: number;
+        mediaDecodeMs: number;
+        paintFlushMs: number;
+      }
+    | undefined;
   private disposed = false;
   private prepared = false;
   private started = performance.now();
@@ -106,6 +115,14 @@ export class WebRendererSession implements RendererSession {
       composition,
       frame: this.currentFrame,
       phase: this.phase,
+      captureBackend: this.captureBackend.id,
+      timing: {
+        phaseElapsedMs: performance.now() - this.phaseStarted,
+        ...(this.frameStarted === undefined
+          ? {}
+          : { frameElapsedMs: performance.now() - this.frameStarted }),
+        ...this.frameTiming,
+      },
       error: error instanceof Error ? error.message : String(error),
     });
   }
@@ -120,6 +137,7 @@ export class WebRendererSession implements RendererSession {
     action: () => Promise<T>,
   ): Promise<T> {
     this.phase = phase;
+    this.phaseStarted = performance.now();
     if (this.disposed || this.options.signal?.aborted)
       throw this.diagnostic('Render cancelled or disposed');
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -219,6 +237,8 @@ export class WebRendererSession implements RendererSession {
     return this.compositionAssetByClipId.get(id) ?? id;
   }
   async seekFrame(context: FrameContext, failOnError = true) {
+    this.frameStarted = performance.now();
+    this.frameTiming = undefined;
     if (!this.prepared) throw this.diagnostic('Prepare session first');
     this.currentFrame = context.frame;
     try {
@@ -258,6 +278,11 @@ export class WebRendererSession implements RendererSession {
   async renderFrame(context: FrameContext) {
     const { start, host } = await this.seekFrame(context);
     const seekElapsed = performance.now() - start;
+    this.frameTiming = {
+      seekTotalMs: seekElapsed,
+      mediaDecodeMs: host.mediaDecodeMs,
+      paintFlushMs: host.paintFlushMs,
+    };
     const captureStart = performance.now();
     const source = await this.bounded(
       'capture',

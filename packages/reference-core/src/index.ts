@@ -2,7 +2,12 @@ import { z } from 'zod';
 const text = z.string().min(1);
 const time = z.number().nonnegative();
 const unit = z.number().min(0).max(1);
-export const digestSchema = z.string().regex(/^[a-f0-9]{64}$/);
+import { digestSchema, frameEvidenceSchema } from './frame-evidence';
+export {
+  digestSchema,
+  frameEvidenceSchema,
+  type FrameEvidence,
+} from './frame-evidence';
 export const mediaProbeSchema = z
   .object({
     path: text,
@@ -75,18 +80,6 @@ export interface TranscriptProvider {
     signal?: AbortSignal,
   ): Promise<MediaTranscript>;
 }
-export const frameEvidenceSchema = z
-  .object({
-    id: text,
-    timeMs: time,
-    path: text,
-    sha256: digestSchema,
-    sourceSha256: digestSchema,
-    shotId: text.optional(),
-    seekMode: z.enum(['fast', 'accurate']),
-  })
-  .strict();
-export type FrameEvidence = z.infer<typeof frameEvidenceSchema>;
 export const referenceEvidenceSchema = z
   .object({
     version: z.literal(1),
@@ -469,3 +462,15 @@ export function alignedReferenceProgress(
       (r.projectProgress - l.projectProgress)
   );
 }
+
+export * from './videobench/candidate';
+export * from './videobench/evidence';
+export * from './videobench/profile';
+export * from './videobench/case';
+export * from './videobench/suite';
+export * from './videobench/review';
+export * from './videobench/report';
+export * from './videobench/validation';
+export * from './videobench/diagnostics';
+export * from './videobench/materialize';
+export * from './videobench/aggregate';

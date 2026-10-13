@@ -37,6 +37,15 @@ for (const directory of directories) {
     }),
   );
   if (
+    !files.includes('package/dist/THIRD_PARTY_NOTICES.md') ||
+    !execFileSync('tar', [
+      '-xOf',
+      tarball,
+      'package/dist/THIRD_PARTY_NOTICES.md',
+    ]).equals(readFileSync('THIRD_PARTY_NOTICES.md'))
+  )
+    throw Error(`Missing or altered third-party notices: ${metadata.name}`);
+  if (
     packed.private === true ||
     packed.version !== version ||
     packed.engines?.node !== '>=22.12.0' ||

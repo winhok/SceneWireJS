@@ -1,10 +1,10 @@
-# Incremental production — v1.2 candidate
+# Incremental production — v1.2
 
-SceneWire v1.2 is a local qualification candidate. It has not been published to npm or released. Installation instructions continue to use the released v1.1.0 CLI; the commands below belong to the v1.2 candidate.
+SceneWire v1.2.0 is the published stable release. Install the CLI with `npm install @scenewirejs/cli@1.2.0`; the commands below describe its local incremental production contract.
 
 A production graph keeps semantic recipes, produced bytes and review bindings separate. Matching recipes permit reuse only after current output bytes and dependency validity are verified. A changed scene rebuilds its required closure while independent scenes remain reusable. Rendering uses existing bounded scene ranges; transitions conservatively expand affected ranges. Audio mix and final assembly are independent producers.
 
-## Candidate CLI
+## CLI
 
 ```sh
 scenewire production-status production.json --profile profile.json --json

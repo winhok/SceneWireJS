@@ -1,3 +1,4 @@
+import { sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { lstat, readdir, realpath } from 'node:fs/promises';
@@ -18,7 +19,7 @@ export async function retainedEvidencePath(root: string, path: string) {
   root = await realpath(root);
   const target = await realpath(resolve(root, path));
   const rel = relative(root, target);
-  if (rel === '..' || rel.startsWith('../') || isAbsolute(rel))
+  if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel))
     throw new Error('Evidence path escapes production root');
   return target;
 }

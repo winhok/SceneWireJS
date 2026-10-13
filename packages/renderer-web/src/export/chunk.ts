@@ -22,6 +22,10 @@ export async function renderSilentRange(
       'image2pipe',
       '-vcodec',
       'png',
+      // The worker pool owns parallelism. Do not let each input decoder and
+      // x264 encoder independently consume the whole host beside capture.
+      '-threads',
+      '1',
       '-framerate',
       String(project.fps),
       '-i',
@@ -29,6 +33,8 @@ export async function renderSilentRange(
       '-an',
       '-c:v',
       'libx264',
+      '-threads',
+      '1',
       '-pix_fmt',
       project.canvas.width % 2 || project.canvas.height % 2
         ? 'yuv444p'

@@ -4,6 +4,8 @@
 
 SceneWire v1.2.0 is released with verified local incremental production. See [the production contract](docs/incremental-production.md).
 
+This source tree prepares the v1.3.0 VideoBench Bounded Engineering Toolkit candidate: production-output evidence capture, deterministic diagnostics, blinded review packets and conservative aggregation. Creative Qualification remains **NO_GO**; Formal Holdout remains **NOT_CONSUMED**. See [candidate scope and local validation](docs/npm-distribution.md). The stable installation below remains v1.2.0 until publication and promotion are verified.
+
 ## What it is
 
 SceneWire is a structured video toolkit with a local editor and CLI. It combines editable native components, code-authored web compositions and immutable footage in one validated project document. An external coding agent can author and inspect that structure; SceneWire owns deterministic time, validation and rendering.
@@ -74,3 +76,5 @@ Build this source with `pnpm install --frozen-lockfile`, `pnpm typecheck`, `pnpm
 ## License
 
 SceneWire project code and workflows are [MIT licensed](LICENSE). Dependencies and user-supplied assets retain their own licenses.
+
+See [third-party software notices](THIRD_PARTY_NOTICES.md) for dependency licenses and distribution notices.

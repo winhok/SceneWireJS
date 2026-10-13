@@ -21,6 +21,23 @@ const npmCli = [
   resolve(dirname(process.execPath), '../lib/node_modules/npm/bin/npm-cli.js'),
 ].find(existsSync);
 if (!npmCli) throw Error('Cannot locate installed Node npm CLI');
+// Use the browser installed for the locked workspace Playwright. The isolated
+// npm consumer may resolve a newer compatible Playwright with another revision.
+const chromium =
+  process.env.SCENEWIRE_CHROMIUM_PATH ??
+  execFileSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      "import {chromium} from 'playwright'; console.log(chromium.executablePath())",
+    ],
+    { cwd: join(repository, 'packages/renderer-web'), encoding: 'utf8' },
+  ).trim();
+if (!existsSync(chromium))
+  throw Error(
+    'Install Chromium with pnpm --filter @scenewirejs/renderer-web exec playwright install chromium, or supply SCENEWIRE_CHROMIUM_PATH',
+  );
 const command = (file, args) =>
   execFileSync(
     file === 'npm' ? process.execPath : file,
@@ -32,6 +49,7 @@ const command = (file, args) =>
         ...process.env,
         NODE_PATH: '',
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1',
+        SCENEWIRE_CHROMIUM_PATH: chromium,
       },
       timeout: 180000,
       maxBuffer: 16 * 1024 * 1024,
@@ -70,6 +88,21 @@ writeFileSync(
       .join('\n') +
     "\nconsole.log('All 19 Node ESM roots PASS');",
 );
+writeFileSync(
+  join(consumer, 'videobench-installed.mjs'),
+  readFileSync(join(repository, 'scripts/videobench-installed.mjs')),
+);
+command('node', ['videobench-installed.mjs']);
+const videobench = JSON.parse(
+  readFileSync(join(consumer, 'videobench-installed-results.json'), 'utf8'),
+);
+if (
+  videobench.status !== 'PASS' ||
+  !videobench.results.length ||
+  videobench.results.some((result) => result.status !== 'PASS')
+)
+  throw Error('Installed VideoBench qualification did not pass');
+console.log(JSON.stringify({ installedVideoBench: videobench }));
 const imports = command('node', ['imports.mjs']);
 writeFileSync(
   join(consumer, 'consumer.ts'),
@@ -104,18 +137,6 @@ const initialEngines = JSON.parse(cliCommand(['engines', '--json']));
 for (const id of ['web-react', 'web-pixi', 'web-three'])
   if (initialEngines.find((e) => e.id === id)?.availability !== 'unavailable')
     throw Error(`Unexpected optional engine before install: ${id}`);
-let chromium = process.env.SCENEWIRE_CHROMIUM_PATH;
-if (!chromium) {
-  chromium = command('node', [
-    '--input-type=module',
-    '-e',
-    "import {chromium} from 'playwright'; console.log(chromium.executablePath())",
-  ]).trim();
-  if (!existsSync(chromium))
-    throw Error(
-      'Install Chromium with npx playwright install chromium, or supply SCENEWIRE_CHROMIUM_PATH',
-    );
-}
 // The fixture is generated with the installed CLI, not copied from repository source.
 const project = {
   id: 'npm-project',
@@ -206,6 +227,7 @@ for (const p of report.packages) {
   if (p.bin) p.binExecution = 'PASS';
 }
 report.consumer = {
+  videobench,
   path: consumer,
   outsideCheckout: true,
   node: process.version,
@@ -214,7 +236,7 @@ report.consumer = {
   chromium: process.env.SCENEWIRE_CHROMIUM_PATH ?? chromium,
   chromiumSource: process.env.SCENEWIRE_CHROMIUM_PATH
     ? 'SCENEWIRE_CHROMIUM_PATH'
-    : 'Playwright-managed',
+    : 'locked-workspace Playwright-managed',
   ffmpeg: execFileSync('ffmpeg', ['-version'], { encoding: 'utf8' }).split(
     '\n',
   )[0],
