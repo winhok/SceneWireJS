@@ -6,8 +6,9 @@ import {
   writeFile,
   readdir,
   lstat,
+  realpath,
 } from 'node:fs/promises';
-import { resolve, dirname, relative, isAbsolute } from 'node:path';
+import { resolve, dirname, relative, isAbsolute, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -20,8 +21,15 @@ if (!['dom', 'react', 'three'].includes(example) || !output || extra.length)
 const root = dirname(fileURLToPath(import.meta.url));
 const source = resolve(root, example),
   destination = resolve(output);
-const inside = relative(resolve(root, '../..'), destination);
-if (!inside.startsWith('..') && !isAbsolute(inside))
+const checkout = resolve(root, '../..');
+function isWithin(parent, child) {
+  const local = relative(parent, child);
+  return (
+    local === '' ||
+    (local !== '..' && !local.startsWith(`..${sep}`) && !isAbsolute(local))
+  );
+}
+if (isWithin(checkout, destination))
   throw Error('Choose a new destination outside the checkout');
 try {
   await lstat(destination);
@@ -29,6 +37,24 @@ try {
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
 }
+let ancestor = dirname(destination);
+for (;;) {
+  try {
+    await lstat(ancestor);
+    break;
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    const parent = dirname(ancestor);
+    if (parent === ancestor) throw error;
+    ancestor = parent;
+  }
+}
+const physicalDestination = resolve(
+  await realpath(ancestor),
+  relative(ancestor, destination),
+);
+if (isWithin(await realpath(checkout), physicalDestination))
+  throw Error('Choose a new destination outside the checkout');
 await cp(source, destination, {
   recursive: true,
   errorOnExist: true,

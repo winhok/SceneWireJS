@@ -37,7 +37,7 @@ jobs:
       - run: pnpm format:check
       - run: pnpm package:check
       - name: Public structural integrity and release engineering fixtures
-        run: node --test scripts/public-structure.test.mjs scripts/release-engineering.test.mjs scripts/videobench-review.test.mjs
+        run: node --test scripts/public-structure.test.mjs scripts/release-engineering.test.mjs scripts/videobench-review.test.mjs examples/agent-adoption/replay-boundary.test.mjs
       - name: Website build
         run: pnpm --dir apps/website build
       - name: Website schema and complete-project command parity

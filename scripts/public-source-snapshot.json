@@ -102,14 +102,14 @@
       "d04b9a39"
     ],
     ".github/workflows/public-source.yml": [
-      "658a5d7b",
-      "6ecbbc96",
-      "7a436cbb",
-      "63d51ed9",
-      "57753f0b",
-      "25c0b649",
-      "93f71ca1",
-      "269798d6"
+      "77a918ab",
+      "c8c39cca",
+      "0214d8e1",
+      "6a5ba714",
+      "0f69c24e",
+      "4bf99847",
+      "c26f54d1",
+      "02eea965"
     ],
     ".gitignore": [
       "db035699",
@@ -1281,15 +1281,25 @@
       "aad4adbd",
       "944893b2"
     ],
+    "examples/agent-adoption/replay-boundary.test.mjs": [
+      "300bd8da",
+      "97b60e1d",
+      "1d930fd6",
+      "d5e4a039",
+      "b71fd9ec",
+      "39e2cddc",
+      "0179df69",
+      "d1af0d72"
+    ],
     "examples/agent-adoption/replay.mjs": [
-      "ca902676",
-      "bdb12de2",
-      "4bd066ca",
-      "e85974a4",
-      "bdb4ea78",
-      "a0d0d84b",
-      "7d18627a",
-      "b83526b5"
+      "34e7c8e6",
+      "f25158cc",
+      "4996fe43",
+      "8f6c5925",
+      "278ff1f1",
+      "3e583935",
+      "32215220",
+      "498affd0"
     ],
     "examples/agent-adoption/three/README.md": [
       "1fb423ba",
