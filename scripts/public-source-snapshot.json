@@ -72,14 +72,14 @@
       "e1816808"
     ],
     ".gitattributes": [
-      "a79691a9",
-      "3b46e49c",
-      "e460c26e",
-      "f22afcc0",
-      "3d6eca1e",
-      "63bf2edb",
-      "c20e9615",
-      "9510f6c9"
+      "2ecd68f3",
+      "97652643",
+      "a6b6cf71",
+      "20d6c761",
+      "6cdabe51",
+      "4d377bde",
+      "9f6b6560",
+      "fc158fea"
     ],
     ".github/workflows/npm-release.yml": [
       "afc67fe7",
@@ -102,14 +102,14 @@
       "d04b9a39"
     ],
     ".github/workflows/public-source.yml": [
-      "89639df2",
-      "308b1c26",
-      "1f66d38d",
-      "a6339410",
-      "30a9a1a5",
-      "485842b5",
-      "9495579a",
-      "f578430c"
+      "66f8a57a",
+      "fbdec314",
+      "34a7495b",
+      "4388c418",
+      "ed52c187",
+      "13ed6116",
+      "a3b3c4a0",
+      "22fbb065"
     ],
     ".gitignore": [
       "db035699",
@@ -152,14 +152,14 @@
       "56fa29e7"
     ],
     "README.md": [
-      "c5195a3b",
-      "dab37440",
-      "9b317525",
-      "1468198a",
-      "2cdd3173",
-      "b1e08069",
-      "cf6fd737",
-      "e953de7e"
+      "daaf1322",
+      "b1b75e9f",
+      "a6c95a4f",
+      "6d7bc0d7",
+      "f678686b",
+      "4bcc6127",
+      "b4a34dcb",
+      "5be38902"
     ],
     "THIRD_PARTY_NOTICES.md": [
       "d1b8370a",
@@ -641,6 +641,16 @@
       "597cfaa4",
       "b0faddb5"
     ],
+    "apps/website/README.md": [
+      "0f60c93e",
+      "4cef1bfb",
+      "ded81363",
+      "8996bee0",
+      "4204bda4",
+      "4dc310a1",
+      "d574655b",
+      "7df7c5a2"
+    ],
     "apps/website/index.html": [
       "02f985df",
       "ccd6f7ef",
@@ -652,14 +662,134 @@
       "e3e9606d"
     ],
     "apps/website/package.json": [
-      "f02c1b2f",
-      "e32ab824",
-      "55d1c378",
-      "93a0e8d2",
-      "c77a57e0",
-      "9b7552fe",
-      "0fbc2660",
-      "9d385d2a"
+      "07cc22a6",
+      "cf5bb412",
+      "af34df10",
+      "b9d66231",
+      "b14f788a",
+      "43a6817e",
+      "ca60d86a",
+      "5f5f6500"
+    ],
+    "apps/website/playwright.config.ts": [
+      "efc0b55b",
+      "e330ee39",
+      "71fc69a9",
+      "9a447023",
+      "fd4f3d18",
+      "05fa243a",
+      "1f147153",
+      "81bdbea1"
+    ],
+    "apps/website/public/demos/dom.mp4": [
+      "2183c50c",
+      "1ab7a89e",
+      "77c7cb68",
+      "b79f1505",
+      "47c3238f",
+      "3beea11e",
+      "11d9d57e",
+      "6d1386dc"
+    ],
+    "apps/website/public/demos/dom.png": [
+      "712e00b8",
+      "383ccfde",
+      "d85b82b8",
+      "e0a7be6b",
+      "3aaf4408",
+      "52192b71",
+      "8b4de39e",
+      "66534007"
+    ],
+    "apps/website/public/demos/manifest.json": [
+      "bd51ed20",
+      "d75737f8",
+      "c6d84f6f",
+      "be46bf3d",
+      "85e30684",
+      "ff67cac2",
+      "3ae0a343",
+      "14dad6c4"
+    ],
+    "apps/website/public/demos/react.mp4": [
+      "5a3f9c7b",
+      "0c90bd56",
+      "7cf7caae",
+      "bd74eb9b",
+      "d57c43f6",
+      "e4f35aee",
+      "5ea2ec5b",
+      "7299a498"
+    ],
+    "apps/website/public/demos/react.png": [
+      "d4c3e4bd",
+      "581f5341",
+      "efa0164e",
+      "a593b412",
+      "41b29f75",
+      "c2c3ac52",
+      "007a7839",
+      "5c62b6ca"
+    ],
+    "apps/website/public/demos/three.mp4": [
+      "2f6210e4",
+      "de40976e",
+      "6c7bc8a5",
+      "8577738e",
+      "35b06332",
+      "5ef87da4",
+      "dbd82c69",
+      "f99e2df2"
+    ],
+    "apps/website/public/demos/three.png": [
+      "9cf1b1c0",
+      "ef76e791",
+      "706c7334",
+      "94178cd4",
+      "27a86888",
+      "9422fefd",
+      "8c417c34",
+      "c7721e15"
+    ],
+    "apps/website/public/source/dom.zip": [
+      "82262751",
+      "2fc4ffde",
+      "c8ee3540",
+      "7244abd6",
+      "03286703",
+      "5e1dbb8c",
+      "a11b4c03",
+      "fd7e0ad8"
+    ],
+    "apps/website/public/source/react.zip": [
+      "15843cf1",
+      "c8998d5e",
+      "09fe3624",
+      "f679025f",
+      "064a2d7a",
+      "e22b0a67",
+      "671f9026",
+      "47e4f7cb"
+    ],
+    "apps/website/public/source/three.zip": [
+      "d48c99fe",
+      "96a1f6a3",
+      "f30f2274",
+      "c7102ac3",
+      "1b8d0b3f",
+      "34784920",
+      "b784350a",
+      "a85d8482"
+    ],
+    "apps/website/src/demo.test.ts": [
+      "796c9963",
+      "ae0d9c40",
+      "8d30bb58",
+      "99966f27",
+      "d266e562",
+      "e621d833",
+      "ec76cf89",
+      "4ce62d59"
     ],
     "apps/website/src/demo.ts": [
       "537cb62c",
@@ -672,24 +802,64 @@
       "9d897067"
     ],
     "apps/website/src/main.tsx": [
-      "976a7de1",
-      "79ca1ffb",
-      "2fffad0e",
-      "86461d62",
-      "13937640",
-      "b105f934",
-      "c8ce844b",
-      "8856c714"
+      "e2575a30",
+      "69cd8a0a",
+      "94c3f6c7",
+      "ab5c20b6",
+      "d9adbc8b",
+      "2e2278d2",
+      "2014ce35",
+      "ebd58b91"
+    ],
+    "apps/website/src/quick-start.test.ts": [
+      "eada5ff6",
+      "6b1abeaf",
+      "ab796d1e",
+      "6be8714f",
+      "9d738f34",
+      "a603f341",
+      "909fc996",
+      "bb192f67"
+    ],
+    "apps/website/src/quick-start.ts": [
+      "12887b60",
+      "ca9d2c6b",
+      "ca39a065",
+      "2b4f2a94",
+      "2ad3b2b3",
+      "f0015ec3",
+      "cfc5ed30",
+      "4c7128df"
+    ],
+    "apps/website/src/real-demos.tsx": [
+      "e159f381",
+      "a461973d",
+      "02a9f547",
+      "949ccb71",
+      "d26608e0",
+      "d9ba490d",
+      "34c9581c",
+      "a976096d"
     ],
     "apps/website/src/style.css": [
-      "38aeeb19",
-      "0cf71060",
-      "eb006ccb",
-      "6d853a93",
-      "0ad669df",
-      "40602e6e",
-      "a78bbc88",
-      "707ea371"
+      "09eb620b",
+      "a739b82b",
+      "e36e7732",
+      "52aa2853",
+      "bb2c3c34",
+      "958cc3aa",
+      "55053d18",
+      "1ceb1266"
+    ],
+    "apps/website/tests/site.spec.ts": [
+      "de9c2539",
+      "400eee0f",
+      "1852c46b",
+      "5c9485ef",
+      "ef83574c",
+      "dc8d4c47",
+      "d9ae5fdf",
+      "35489b6c"
     ],
     "apps/website/vite.config.ts": [
       "237bce95",
@@ -700,6 +870,16 @@
       "fe60a093",
       "9b1b5593",
       "dcfcf3e4"
+    ],
+    "apps/website/vitest.config.ts": [
+      "f8012a9a",
+      "e34afd89",
+      "6db23ef7",
+      "de41089f",
+      "a4f1b7ed",
+      "51997d68",
+      "a65e0266",
+      "91c3f5a1"
     ],
     "docs/architecture.md": [
       "514d00b0",
@@ -762,14 +942,14 @@
       "6f647132"
     ],
     "docs/onboarding.md": [
-      "7bf03918",
-      "b9af41b3",
-      "6eca6d35",
-      "5f86101f",
-      "350034c1",
-      "353a7841",
-      "f5fc9d97",
-      "bc51abae"
+      "a081181b",
+      "b2434ab8",
+      "e3d9a0c5",
+      "719dc689",
+      "d9eee6fb",
+      "03415c44",
+      "b86785b1",
+      "8459fa9f"
     ],
     "docs/package-contract.json": [
       "6348c03e",
@@ -840,6 +1020,336 @@
       "a5e589c7",
       "7a6d8b53",
       "5d35764f"
+    ],
+    "examples/agent-adoption/README.md": [
+      "da4a0b0f",
+      "3b29f381",
+      "4ccd7940",
+      "3a6ca090",
+      "ef2e4fa2",
+      "a98095af",
+      "5a90f3de",
+      "f0d846ee"
+    ],
+    "examples/agent-adoption/dom/README.md": [
+      "fd663299",
+      "fed26e32",
+      "1f8a2990",
+      "88f1f186",
+      "00308848",
+      "50cf0b54",
+      "1d74993d",
+      "80f67b8a"
+    ],
+    "examples/agent-adoption/dom/brief.json": [
+      "b0e1bdce",
+      "316683b4",
+      "f1cac20f",
+      "dd6b2b98",
+      "af3bde50",
+      "0b4667a7",
+      "2c98910f",
+      "14056502"
+    ],
+    "examples/agent-adoption/dom/compositions/scene-01/agent-original.ts.txt": [
+      "52f7d423",
+      "38f6148c",
+      "0a83401b",
+      "a7d92ddc",
+      "f73ef4c7",
+      "07232dd6",
+      "030c1506",
+      "f88a61b5"
+    ],
+    "examples/agent-adoption/dom/compositions/scene-01/composition.json": [
+      "26573b6b",
+      "f6bead92",
+      "b2a03a0e",
+      "c7f097ec",
+      "11ad34b6",
+      "9d4757b1",
+      "85848bc9",
+      "727fabd1"
+    ],
+    "examples/agent-adoption/dom/compositions/scene-01/index.mjs": [
+      "a63acc46",
+      "6ca6af75",
+      "aa3355dd",
+      "e5f10a76",
+      "12360602",
+      "164c3906",
+      "b6cd9958",
+      "ad18a1a6"
+    ],
+    "examples/agent-adoption/dom/compositions/scene-02/agent-original.ts.txt": [
+      "2f4f305a",
+      "a7cd2587",
+      "01c14e3c",
+      "f897a712",
+      "b7648215",
+      "0499c73a",
+      "ed64420d",
+      "8244e231"
+    ],
+    "examples/agent-adoption/dom/compositions/scene-02/composition.json": [
+      "26573b6b",
+      "f6bead92",
+      "b2a03a0e",
+      "c7f097ec",
+      "11ad34b6",
+      "9d4757b1",
+      "85848bc9",
+      "727fabd1"
+    ],
+    "examples/agent-adoption/dom/compositions/scene-02/index.mjs": [
+      "bd6f66a9",
+      "0f2ea7a4",
+      "5646c810",
+      "7f83fe55",
+      "b3ac1a8f",
+      "91887b52",
+      "22774374",
+      "f0c30a72"
+    ],
+    "examples/agent-adoption/dom/compositions/scene-03/agent-original.ts.txt": [
+      "cf35a3cb",
+      "febe7de8",
+      "5a55a5c5",
+      "6b213cec",
+      "a2ea219b",
+      "fd63cda8",
+      "fe779c28",
+      "93c78f08"
+    ],
+    "examples/agent-adoption/dom/compositions/scene-03/composition.json": [
+      "26573b6b",
+      "f6bead92",
+      "b2a03a0e",
+      "c7f097ec",
+      "11ad34b6",
+      "9d4757b1",
+      "85848bc9",
+      "727fabd1"
+    ],
+    "examples/agent-adoption/dom/compositions/scene-03/index.mjs": [
+      "b90089be",
+      "a10d6f9e",
+      "be97505b",
+      "c85b8e1c",
+      "3d177575",
+      "d99eac7c",
+      "2104401b",
+      "9bb4619d"
+    ],
+    "examples/agent-adoption/dom/narrative.json": [
+      "42fcfc2a",
+      "4c6b38d9",
+      "01f8c746",
+      "d342ae59",
+      "28b51673",
+      "72d64446",
+      "8f010131",
+      "d6f40d20"
+    ],
+    "examples/agent-adoption/dom/package-lock.json": [
+      "cdadd28c",
+      "782817da",
+      "f77bd527",
+      "c998ff7e",
+      "49aafb51",
+      "bee4ac8c",
+      "e1653195",
+      "8be4a333"
+    ],
+    "examples/agent-adoption/dom/package.json": [
+      "0c44fd71",
+      "a3ffbb9c",
+      "a3e84446",
+      "e68a312e",
+      "32e3b717",
+      "d0c670a8",
+      "28366e7c",
+      "e9802af3"
+    ],
+    "examples/agent-adoption/dom/production.json": [
+      "4f0ba8f6",
+      "b0a1d2fe",
+      "20464afe",
+      "f4decb7e",
+      "01d2a265",
+      "d9638ad6",
+      "4b9ae4d0",
+      "7eca5187"
+    ],
+    "examples/agent-adoption/dom/project.json": [
+      "ce34a2c9",
+      "556738a3",
+      "a619ff8d",
+      "cc43ed5d",
+      "527a7161",
+      "91cc99d9",
+      "792f4b1d",
+      "014070d0"
+    ],
+    "examples/agent-adoption/dom/request.txt": [
+      "97f2803a",
+      "ba273d3b",
+      "fbd4ca89",
+      "c1bf28f5",
+      "26ed86e3",
+      "8e68c022",
+      "55b46169",
+      "2928c610"
+    ],
+    "examples/agent-adoption/dom/sources.json": [
+      "a17204cc",
+      "ed917248",
+      "cad36a01",
+      "e367ba92",
+      "5273e32d",
+      "fdc28a71",
+      "691495d3",
+      "245dca7f"
+    ],
+    "examples/agent-adoption/dom/visual.json": [
+      "2defd6b5",
+      "66525c16",
+      "657bc3f4",
+      "e3930c63",
+      "96bf0491",
+      "9afbc831",
+      "768b2615",
+      "6ab45c9c"
+    ],
+    "examples/agent-adoption/react/README.md": [
+      "cef86e90",
+      "0e974a85",
+      "9f8c1b78",
+      "868d58c9",
+      "ba9b1aff",
+      "86fcfa97",
+      "410112ea",
+      "26547ad5"
+    ],
+    "examples/agent-adoption/react/compositions/scene-01/composition.json": [
+      "15a52d4c",
+      "87af72ed",
+      "4dcccf4d",
+      "958a98e2",
+      "7f7810e1",
+      "7e22b7a1",
+      "70c7fc4b",
+      "8f031e24"
+    ],
+    "examples/agent-adoption/react/compositions/scene-01/index.mjs": [
+      "5bd5ace3",
+      "979ba3ca",
+      "4f72ed37",
+      "25371149",
+      "8a7c9701",
+      "6b2df9ed",
+      "97bf0091",
+      "6e7bc1dc"
+    ],
+    "examples/agent-adoption/react/package-lock.json": [
+      "066631fd",
+      "89fe21f4",
+      "e8b7a002",
+      "65d00627",
+      "583314bb",
+      "1800529d",
+      "62b01258",
+      "edc7689f"
+    ],
+    "examples/agent-adoption/react/package.json": [
+      "2461a197",
+      "0648c139",
+      "349c2c6c",
+      "770e849c",
+      "40e90986",
+      "686357c9",
+      "af63e6cd",
+      "dc9c8200"
+    ],
+    "examples/agent-adoption/react/project.json": [
+      "9d7d12d2",
+      "db0e08d4",
+      "a8e96f2d",
+      "4e2ef47e",
+      "87a1aebe",
+      "b2e54db6",
+      "aad4adbd",
+      "944893b2"
+    ],
+    "examples/agent-adoption/replay.mjs": [
+      "ca902676",
+      "bdb12de2",
+      "4bd066ca",
+      "e85974a4",
+      "bdb4ea78",
+      "a0d0d84b",
+      "7d18627a",
+      "b83526b5"
+    ],
+    "examples/agent-adoption/three/README.md": [
+      "1fb423ba",
+      "377ed9b0",
+      "d8d046a6",
+      "0f86042d",
+      "06b03536",
+      "a52fd692",
+      "9c8f8ea9",
+      "b92d7de0"
+    ],
+    "examples/agent-adoption/three/compositions/scene-01/composition.json": [
+      "5348e676",
+      "d36fe52c",
+      "dbd67afb",
+      "c9965933",
+      "0bc4d410",
+      "986746f8",
+      "6c5c6947",
+      "fb7d9449"
+    ],
+    "examples/agent-adoption/three/compositions/scene-01/index.mjs": [
+      "cd0c132b",
+      "5e21d0e9",
+      "dea474f1",
+      "4e874169",
+      "4918c85e",
+      "a7fa07a4",
+      "ef3b5f99",
+      "0d9fcb82"
+    ],
+    "examples/agent-adoption/three/package-lock.json": [
+      "ffbc968e",
+      "a74c8d37",
+      "9a93358f",
+      "5d73e12e",
+      "5af16877",
+      "17a491d4",
+      "7e9f1ce3",
+      "a0e3b390"
+    ],
+    "examples/agent-adoption/three/package.json": [
+      "560ceb04",
+      "9f4825b4",
+      "b1ae7fcd",
+      "3a32b7ec",
+      "221712e0",
+      "34b61c27",
+      "c8e3c67e",
+      "2d142669"
+    ],
+    "examples/agent-adoption/three/project.json": [
+      "99a76363",
+      "3fc91337",
+      "3f04b43b",
+      "accbe4c0",
+      "38b0a349",
+      "e8917f93",
+      "f34690bc",
+      "540b66ae"
     ],
     "examples/narration-integration/create.mjs": [
       "e4148f52",

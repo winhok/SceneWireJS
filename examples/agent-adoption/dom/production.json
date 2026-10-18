@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "brief": "brief.json",
+  "sources": "sources.json",
+  "narrativePlan": "narrative.json",
+  "visualPlan": "visual.json",
+  "project": "project.json"
+}

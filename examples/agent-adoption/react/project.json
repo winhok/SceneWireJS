@@ -1,0 +1,72 @@
+{
+  "id": "agent-adoption-react",
+  "version": 9,
+  "metadata": {
+    "title": "Time is data",
+    "createdAt": "2026-10-18T11:25:35.495Z",
+    "updatedAt": "2026-10-18T11:25:35.495Z"
+  },
+  "canvas": {
+    "width": 1280,
+    "height": 720,
+    "background": "#f1f0e9"
+  },
+  "fps": 30,
+  "theme": {
+    "name": "starter",
+    "fontFamily": "sans-serif",
+    "foreground": "#ffffff",
+    "accent": "#53d5b0"
+  },
+  "seed": 130,
+  "assets": [
+    {
+      "id": "composition-01",
+      "type": "composition",
+      "rendererId": "web",
+      "src": "compositions/scene-01/composition.json"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scene-01",
+      "name": "Time is data",
+      "startFrame": 0,
+      "durationFrames": 300
+    }
+  ],
+  "tracks": [
+    {
+      "id": "visual-01",
+      "name": "Visual",
+      "locked": false,
+      "muted": false,
+      "type": "visual",
+      "clips": [
+        {
+          "id": "clip-01",
+          "startFrame": 0,
+          "durationFrames": 300,
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "width": 300,
+            "height": 100,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "opacity": 1,
+            "zIndex": 0
+          },
+          "animations": [],
+          "component": "ForeignComposition",
+          "props": {
+            "assetId": "composition-01",
+            "placement": "replace-scene"
+          }
+        }
+      ]
+    }
+  ],
+  "markers": []
+}

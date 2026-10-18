@@ -1,0 +1,156 @@
+{
+  "id": "intent-video",
+  "version": 9,
+  "metadata": {
+    "title": "制作一条 12 秒、1280×720、30fps 的简洁信息动画，向 Coding Agent 用户解释从意图到视频的三个步骤：Describe、Compose、Deliver。三段各 4 秒，有清晰标题、可读说明、真实连续运动和最后的成片落点。使用 DOM/CSS，保持 FrameContext 确定性。无需配音或音乐，明确记录为有意静音。交付可实际解码的完整 MP4、全部可编辑源码、运行命令和真实检查记录。",
+    "createdAt": "2026-10-18T11:26:02.368Z",
+    "updatedAt": "2026-10-18T11:26:02.368Z"
+  },
+  "canvas": {
+    "width": 1280,
+    "height": 720,
+    "background": "#101827"
+  },
+  "fps": 30,
+  "theme": {
+    "name": "production",
+    "fontFamily": "Arial",
+    "foreground": "#ffffff",
+    "accent": "#53d5b0"
+  },
+  "seed": 0,
+  "assets": [
+    {
+      "id": "asset-scene-01",
+      "type": "composition",
+      "rendererId": "web",
+      "src": "compositions/scene-01/composition.json"
+    },
+    {
+      "id": "asset-scene-02",
+      "type": "composition",
+      "rendererId": "web",
+      "src": "compositions/scene-02/composition.json"
+    },
+    {
+      "id": "asset-scene-03",
+      "type": "composition",
+      "rendererId": "web",
+      "src": "compositions/scene-03/composition.json"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scene-01",
+      "name": "Describe",
+      "startFrame": 0,
+      "durationFrames": 120
+    },
+    {
+      "id": "scene-02",
+      "name": "Compose",
+      "startFrame": 120,
+      "durationFrames": 120
+    },
+    {
+      "id": "scene-03",
+      "name": "Deliver",
+      "startFrame": 240,
+      "durationFrames": 120
+    }
+  ],
+  "tracks": [
+    {
+      "id": "visual-intent-video",
+      "name": "Production",
+      "locked": false,
+      "muted": false,
+      "type": "visual",
+      "clips": [
+        {
+          "id": "clip-scene-01",
+          "startFrame": 0,
+          "durationFrames": 120,
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "width": 300,
+            "height": 100,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "opacity": 1,
+            "zIndex": 0
+          },
+          "animations": [],
+          "component": "ForeignComposition",
+          "props": {
+            "assetId": "asset-scene-01",
+            "placement": "replace-scene"
+          }
+        },
+        {
+          "id": "clip-scene-02",
+          "startFrame": 120,
+          "durationFrames": 120,
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "width": 300,
+            "height": 100,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "opacity": 1,
+            "zIndex": 0
+          },
+          "animations": [],
+          "component": "ForeignComposition",
+          "props": {
+            "assetId": "asset-scene-02",
+            "placement": "replace-scene"
+          }
+        },
+        {
+          "id": "clip-scene-03",
+          "startFrame": 240,
+          "durationFrames": 120,
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "width": 300,
+            "height": 100,
+            "scaleX": 1,
+            "scaleY": 1,
+            "rotation": 0,
+            "opacity": 1,
+            "zIndex": 0
+          },
+          "animations": [],
+          "component": "ForeignComposition",
+          "props": {
+            "assetId": "asset-scene-03",
+            "placement": "replace-scene"
+          }
+        }
+      ]
+    }
+  ],
+  "markers": [
+    {
+      "id": "marker-scene-01",
+      "frame": 0,
+      "label": "Describe"
+    },
+    {
+      "id": "marker-scene-02",
+      "frame": 120,
+      "label": "Compose"
+    },
+    {
+      "id": "marker-scene-03",
+      "frame": 240,
+      "label": "Deliver"
+    }
+  ]
+}

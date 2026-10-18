@@ -40,6 +40,8 @@ jobs:
         run: node --test scripts/public-structure.test.mjs scripts/release-engineering.test.mjs scripts/videobench-review.test.mjs
       - name: Website build
         run: pnpm --dir apps/website build
+      - name: Website schema and complete-project command parity
+        run: pnpm --dir apps/website test
       - run: node apps/cli/dist/scenewire.js engines
       - name: Install renderer prerequisites
         run: |
@@ -60,8 +62,76 @@ jobs:
           cat "$profile_file"
           sudo install -m 0644 "$profile_file" /etc/apparmor.d/scenewire-managed-chromium
           sudo apparmor_parser -r /etc/apparmor.d/scenewire-managed-chromium
+      - name: Website real-video playback and source downloads
+        run: pnpm --dir apps/website test:browser
+      - name: Public npm adoption examples with full media decode
+        run: |
+          node examples/agent-adoption/replay.mjs dom "$RUNNER_TEMP/adoption-dom"
+          node examples/agent-adoption/replay.mjs react "$RUNNER_TEMP/adoption-react"
+          node examples/agent-adoption/replay.mjs three "$RUNNER_TEMP/adoption-three"
+      - name: Verify final media, source ZIP contents and hosted replay provenance
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, shutil, subprocess, zipfile
+          root = pathlib.Path.cwd()
+          output = pathlib.Path(os.environ['RUNNER_TEMP']) / 'adoption-qualification'
+          output.mkdir()
+          manifest = json.loads((root / 'apps/website/public/demos/manifest.json').read_text())
+          rows = []
+          for item in manifest['examples']:
+              ident = item['id']
+              source = root / 'examples/agent-adoption' / ident
+              final = root / 'apps/website/public/demos' / item['video']
+              packed = root / 'apps/website/public' / item['sourceZip']
+              assert final.stat().st_size == item['bytes']
+              assert hashlib.sha256(final.read_bytes()).hexdigest() == item['sha256']
+              assert hashlib.sha256(packed.read_bytes()).hexdigest() == item['sourceZipSha256']
+              assert (root / 'apps/website/dist/demos' / item['video']).read_bytes() == final.read_bytes()
+              assert (root / 'apps/website/dist' / item['sourceZip']).read_bytes() == packed.read_bytes()
+              expected = item['sourceFileSha256']
+              with zipfile.ZipFile(packed) as archive:
+                  names = archive.namelist()
+                  assert len(names) == len(set(names)) == len(expected)
+                  assert set(names) == {ident + '/' + name for name in expected}
+                  for name, digest in expected.items():
+                      data = (source / name).read_bytes()
+                      assert hashlib.sha256(data).hexdigest() == digest
+                      assert archive.read(ident + '/' + name) == data
+              probe = json.loads(subprocess.check_output(['ffprobe', '-v', 'error', '-count_frames', '-show_streams', '-of', 'json', str(final)], text=True))
+              stream = next(s for s in probe['streams'] if s['codec_type'] == 'video')
+              assert stream['width'] == item['width'] and stream['height'] == item['height']
+              assert int(stream['nb_read_frames']) == item['frames']
+              assert stream['avg_frame_rate'] == str(item['fps']) + '/1'
+              assert abs(float(stream['duration']) - item['durationSeconds']) <= 1 / item['fps']
+              assert stream['codec_name'] == item['codec'] and stream['pix_fmt'] == item['pixelFormat']
+              assert not any(s['codec_type'] == 'audio' for s in probe['streams'])
+              subprocess.run(['ffmpeg', '-v', 'error', '-xerror', '-i', str(final), '-f', 'null', '-'], check=True)
+              replay = pathlib.Path(os.environ['RUNNER_TEMP']) / ('adoption-' + ident)
+              validation = json.loads((replay / 'checks/validation.json').read_text())
+              assert validation['result'] == 'PASS_FRESH_SOURCE_COPY_NPM_CI_RENDER_FULL_DECODE'
+              assert validation['cliVersion'] == '1.3.0' and validation['sourceSha256'] == expected
+              assert validation['width'] == item['width'] and validation['height'] == item['height']
+              assert validation['frames'] == item['frames'] and validation['fps'] == item['fps']
+              assert validation['fullDecode'] == 'PASS' and all(c['exitCode'] == 0 for c in validation['commands'])
+              assert hashlib.sha256((replay / 'video.mp4').read_bytes()).hexdigest() == validation['sha256']
+              target = output / ident
+              target.mkdir()
+              for original, name in [(final, 'final.mp4'), (packed, 'source.zip'), (replay / 'video.mp4', 'hosted-replay.mp4'), (replay / 'checks/validation.json', 'replay-validation.json')]:
+                  shutil.copy2(original, target / name)
+              rows.append({'id': ident, 'finalSha256': item['sha256'], 'sourceZipSha256': item['sourceZipSha256'], 'sourceFiles': len(expected), 'hostedReplaySha256': validation['sha256'], 'videoAndSourceIntegrity': 'PASS'})
+          report = {'result': 'PASS_FINAL_MEDIA_FULL_DECODE_AND_EXACT_ZIP_SOURCE_CONTENTS', 'checkoutSha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(), 'runId': os.environ['GITHUB_RUN_ID'], 'examples': rows, 'continuousOwnerPlayback': 'NOT_PERFORMED', 'creativeQualification': 'NO_GO', 'formalHoldout': 'NOT_CONSUMED'}
+          (output / 'qualification.json').write_text(json.dumps(report, indent=2) + '\n')
+          print(json.dumps(report, indent=2))
+          PY
       - name: Packed consumer, installed VideoBench v1.3 and four engines
         run: pnpm package:smoke
+      - name: Retain hosted qualification media and exact integrity records
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: agent-adoption-qualification-${{ github.sha }}
+          path: ${{ runner.temp }}/adoption-qualification/
+          if-no-files-found: error
+          retention-days: 14
 
   compatibility:
     name: Compatibility / Ubuntu / Node 26

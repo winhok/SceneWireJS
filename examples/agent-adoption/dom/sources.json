@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "user",
+      "kind": "text",
+      "title": "Original creative request",
+      "locator": "request.txt",
+      "snapshotPath": "request.txt",
+      "sha256": "97f2803aba273d3bfbd4ca89c1bf28f526ed86e38e68c02255b461692928c610"
+    }
+  ],
+  "claims": [
+    {
+      "id": "workflow",
+      "text": "Describe, Compose, Deliver is the requested illustrative workflow.",
+      "type": "creative",
+      "sourceIds": ["user"]
+    }
+  ]
+}

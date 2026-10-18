@@ -474,3 +474,53 @@ footer {
     transition: none !important;
   }
 }
+
+/* Product demo media uses the incumbent paper/ink palette. */
+.real-demos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 32px;
+  margin-block: 30px;
+}
+.real-demos figure {
+  margin: 0;
+  min-width: 0;
+}
+.real-demos video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #101b2a;
+}
+.real-demos h3 {
+  margin-block: 14px 10px;
+}
+.real-demos figcaption > p {
+  max-width: 65ch;
+}
+.media-facts {
+  font-size: 12px;
+  color: #4e5c56;
+  margin-block: 14px 0;
+}
+.demo-intro {
+  max-width: 65ch;
+}
+.copy-commands {
+  background: #192321;
+  color: #f1f0e9;
+  border: 1px solid #192321;
+  padding: 12px 18px;
+  font: inherit;
+  cursor: pointer;
+}
+.copy-commands:hover {
+  background: #35483f;
+}
+.agent-steps {
+  max-width: 70ch;
+  padding-inline-start: 22px;
+}
+.agent-steps li + li {
+  margin-block-start: 14px;
+}

@@ -1,1 +1,6 @@
 * text eol=lf
+
+# Preserve the exact rendered media and downloadable source archive bytes.
+/apps/website/public/demos/*.mp4 -text
+/apps/website/public/demos/*.png -text
+/apps/website/public/source/*.zip -text

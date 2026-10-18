@@ -2,10 +2,23 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { statusFixture } from './demo';
 import './style.css';
+import { quickStart } from './quick-start';
+import { RealDemos } from './real-demos';
 const github = 'https://github.com/winhok/SceneWireJS';
 const docs = `${github}/blob/main/README.md`;
 function App() {
   const [edited, setEdited] = useState(false);
+  const [copyStatus, setCopyStatus] = useState('');
+  async function copyQuickStart() {
+    try {
+      await navigator.clipboard.writeText(quickStart);
+      setCopyStatus('Commands copied.');
+    } catch {
+      setCopyStatus(
+        'Clipboard unavailable. Select and copy the commands below.',
+      );
+    }
+  }
   const status = statusFixture(edited);
   return (
     <>
@@ -17,6 +30,7 @@ function App() {
           SceneWire<span> / </span>
         </a>
         <nav aria-label="Main navigation">
+          <a href="#real-demos">Real videos</a>
           <a href="#how">How it works</a>
           <a href="#quick-start">Quick Start</a>
           <a href={github}>GitHub ↗</a>
@@ -36,8 +50,8 @@ function App() {
               <br />
               <strong>Rebuild only what became invalid.</strong>
             </p>
-            <a className="cta" href="#demo">
-              Explore the production model <span>↓</span>
+            <a className="cta" href="#real-demos">
+              Watch real outputs <span>↓</span>
             </a>
           </div>
           <p className="release-note">
@@ -53,6 +67,7 @@ function App() {
             .
           </p>
         </section>
+        <RealDemos />
         <section id="demo" aria-labelledby="demo-title">
           <div className="section-heading">
             <p className="eyebrow">01 / The smallest useful change</p>
@@ -221,25 +236,51 @@ function App() {
           <p className="eyebrow">06 / Quick Start</p>
           <h2>Start with the released CLI.</h2>
           <p>
-            Use Node 22.12 or newer and install v1.3.0 in your project. Install
-            Chromium for browser rendering.
+            Use Node 22.12 or newer and FFmpeg/ffprobe. Run from a parent
+            directory where <code>my-video</code> does not exist. The
+            initializer creates a complete project and installs all seven
+            shipped SceneWire Skills.
+          </p>
+          <button
+            className="copy-commands"
+            type="button"
+            onClick={copyQuickStart}
+          >
+            Copy Quick Start
+          </button>
+          <p className="caption" role="status" aria-live="polite">
+            {copyStatus}
           </p>
           <pre className="terminal">
-            <code>
-              {
-                'npm install @scenewirejs/cli@1.3.0\nnpm install -D playwright\nnpx playwright install chromium\nnpx scenewire engines\nnpx scenewire scaffold web-dom composition'
-              }
-            </code>
+            <code>{quickStart}</code>
           </pre>
           <p className="caption">
-            The scaffold creates composition source, not a complete video
-            project. Follow the{' '}
-            <a href={`${github}/blob/main/docs/web-compositions.md`}>
-              Web composition contract
-            </a>{' '}
-            to create a VideoProject v9 referencing
-            composition/composition.json, then run the inspect, render-check and
-            render commands above. Rendering also needs FFmpeg.
+            Dependency and browser installation are explicit. The Playwright
+            command uses this project's installed renderer dependency. If the
+            browser cannot be downloaded, follow{' '}
+            <a href={`${github}/blob/main/docs/onboarding.md`}>onboarding</a> to
+            configure an existing Chromium executable. No manual project JSON is
+            needed.
+          </p>
+          <h3>Then give your coding agent a brief.</h3>
+          <ol className="agent-steps">
+            <li>
+              Start with <code>.agents/skills/scenewire/SKILL.md</code> and
+              describe the story, duration, canvas and audio requirements.
+            </li>
+            <li>
+              Let the agent load the creation or direction workflow, author the
+              composition and use the review skill to inspect actual frames.
+            </li>
+            <li>
+              Keep the source, command log, media checks and final MP4. Report
+              failures and interventions alongside the result.
+            </li>
+          </ol>
+          <p className="caption">
+            SceneWire renders code authored by your agent; it does not call a
+            built-in generative model. The examples are intentionally silent and
+            require no paid model or narration service.
           </p>
         </section>
         <section className="closing">

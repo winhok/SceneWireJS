@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "id": "narrative",
+  "briefId": "intent-video",
+  "thesis": "From intent to a finished video",
+  "hook": "Your intent becomes a video",
+  "arc": "Describe the goal, compose the motion, deliver the file.",
+  "scenes": [
+    {
+      "id": "scene-01",
+      "order": 0,
+      "title": "Describe",
+      "purpose": "Describe",
+      "keyMessage": "State the story, audience and constraints.",
+      "claimIds": ["workflow"],
+      "durationFrames": 120,
+      "transitionIntent": "Continuous traveling accent"
+    },
+    {
+      "id": "scene-02",
+      "order": 1,
+      "title": "Compose",
+      "purpose": "Compose",
+      "keyMessage": "Turn the plan into editable scenes and motion.",
+      "claimIds": ["workflow"],
+      "durationFrames": 120,
+      "transitionIntent": "Continuous traveling accent"
+    },
+    {
+      "id": "scene-03",
+      "order": 2,
+      "title": "Deliver",
+      "purpose": "Deliver",
+      "keyMessage": "Check frames, render, and verify the MP4.",
+      "claimIds": ["workflow"],
+      "durationFrames": 120,
+      "transitionIntent": "Continuous traveling accent"
+    }
+  ]
+}

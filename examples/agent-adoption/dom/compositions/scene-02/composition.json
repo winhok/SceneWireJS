@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 2,
+  "renderer": "web",
+  "engine": "web-dom",
+  "entry": "index.mjs",
+  "transparent": true,
+  "permissions": {
+    "network": false
+  }
+}

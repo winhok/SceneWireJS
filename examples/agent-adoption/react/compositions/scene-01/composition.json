@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 2,
+  "renderer": "web",
+  "engine": "web-react",
+  "entry": "index.mjs",
+  "transparent": true,
+  "permissions": {
+    "network": false
+  }
+}

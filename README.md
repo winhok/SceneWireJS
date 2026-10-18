@@ -14,32 +14,26 @@ SceneWire is a structured video toolkit with a local editor and CLI. It combines
 
 VideoProject owns scenes, tracks, clips, assets and narration. FrameContext drives arbitrary seeks. Native domain components compile into primitives; web compositions retain their own code. Semantic patches provide reversible bounded edits.
 
-## Install
+## First video
+
+Node >=22.12 and FFmpeg/ffprobe are required. Run from a parent directory where `my-video` does not exist:
 
 ```sh
-npm install @scenewirejs/cli@1.3.0
-npx scenewire engines
+npm exec --yes --package=@scenewirejs/cli@1.3.0 -- scenewire init my-video --yes --skills
+cd my-video
+npm install --save-exact @scenewirejs/cli@1.3.0
+npx --no-install playwright install chromium
+npx --no-install scenewire doctor
+npx --no-install scenewire render-check project.json
+npx --no-install scenewire render project.json --output video.mp4
+npx --no-install scenewire final-media-qc video.mp4
 ```
 
-Install optional React, Pixi or Three dependencies in your project for those authoring engines. DOM authoring needs no optional graphics engine.
+`init --yes --skills` creates a complete editable VideoProject and installs the seven SceneWire Skills. The dependency and Chromium installations are explicit. The starter renders without manually assembling JSON. Give your coding agent a natural-language brief and start with `.agents/skills/scenewire/SKILL.md`; see [onboarding](docs/onboarding.md) for prerequisites, optional engines and failure recovery.
 
-## Requirements
+## Reproduce a real example
 
-Node >=22.12.0. Source builds use pnpm 12.8.1. Browser rendering requires Chromium and FFmpeg/ffprobe on PATH. Install Chromium with `npx playwright install chromium` after installing Playwright, or set `SCENEWIRE_CHROMIUM_PATH` to an installed browser executable. Rendering never installs dependencies.
-
-## Quick start
-
-```sh
-npx scenewire scaffold web-dom composition
-```
-
-Save the complete inline project in [Web compositions](docs/web-compositions.md) as `project.json`, then run:
-
-```sh
-npx scenewire inspect project.json
-npx scenewire render-check project.json
-npx scenewire render project.json --output video.mp4
-```
+[DOM information animation, React technical explainer and Three visual study](examples/agent-adoption/README.md) include complete editable source, public npm lockfiles, commands and actual rendered MP4s. Source and media checks travel together. The [website](https://winhok.github.io/SceneWireJS/) distinguishes real rendered examples from its interactive production illustration.
 
 ## CLI
 
