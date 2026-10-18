@@ -3,7 +3,7 @@
 Node 22.12 or newer, FFmpeg/ffprobe and compatible Chromium are render prerequisites. Install the CLI, then create an empty project:
 
 ```sh
-npm install @scenewirejs/cli@1.0.0
+npm install @scenewirejs/cli@1.3.0
 mkdir my-video
 cd my-video
 npx scenewire init --yes
@@ -34,3 +34,7 @@ Generated optional-engine dependencies use profile-declared compatibility ranges
 All Node media paths honor `SCENEWIRE_FFMPEG_PATH` and `SCENEWIRE_FFPROBE_PATH` before PATH. A configured missing or empty executable fails with remediation and never silently falls back. Doctor reports whether discovery used `configured` or `PATH`.
 
 The media-inspect root no longer exposes process ownership primitives. The `internal/process` subpath is reserved for SceneWire implementation and carries no stable consumer compatibility promise. Media inspection, encoder/mux and picture validation share its process-tree cancellation implementation. Use inspection APIs from the root for application code.
+
+## VideoBench in v1.3.0
+
+Use `npx scenewire videobench --help` for evidence capture, identity checks and deterministic diagnostics. See [the engineering guide](videobench-engineering.md) for request requirements and qualification limits. Creative Qualification remains **NO_GO** and Formal Holdout remains **NOT_CONSUMED**.

@@ -152,14 +152,14 @@
       "56fa29e7"
     ],
     "README.md": [
-      "8628da44",
-      "c4b02230",
-      "e92f2aef",
-      "61d095f1",
-      "d834c361",
-      "4040f818",
-      "51a890a6",
-      "af9b73ba"
+      "c5195a3b",
+      "dab37440",
+      "9b317525",
+      "1468198a",
+      "2cdd3173",
+      "b1e08069",
+      "cf6fd737",
+      "e953de7e"
     ],
     "THIRD_PARTY_NOTICES.md": [
       "d1b8370a",
@@ -672,14 +672,14 @@
       "9d897067"
     ],
     "apps/website/src/main.tsx": [
-      "44fcd3a1",
-      "2f457b66",
-      "595d970b",
-      "ea14dca3",
-      "96e9a0dc",
-      "cb67911c",
-      "8ff95b8e",
-      "869c0a95"
+      "976a7de1",
+      "79ca1ffb",
+      "2fffad0e",
+      "86461d62",
+      "13937640",
+      "b105f934",
+      "c8ce844b",
+      "8856c714"
     ],
     "apps/website/src/style.css": [
       "38aeeb19",
@@ -752,24 +752,24 @@
       "4c8a2352"
     ],
     "docs/npm-distribution.md": [
-      "48730983",
-      "f8cbb576",
-      "9db057d2",
-      "2a4b6495",
-      "4080d685",
-      "3f7ff9a0",
-      "766a2909",
-      "a374196c"
+      "92751c00",
+      "1da8c789",
+      "977fcfd9",
+      "be17e665",
+      "2a9f2a80",
+      "feba9ae6",
+      "6cfda03b",
+      "6f647132"
     ],
     "docs/onboarding.md": [
-      "99550501",
-      "cc5eb838",
-      "7d0aee31",
-      "9b94d2de",
-      "c7b0d584",
-      "535dbfd9",
-      "a23a62a5",
-      "88aa8d65"
+      "7bf03918",
+      "b9af41b3",
+      "6eca6d35",
+      "5f86101f",
+      "350034c1",
+      "353a7841",
+      "f5fc9d97",
+      "bc51abae"
     ],
     "docs/package-contract.json": [
       "6348c03e",
@@ -810,6 +810,16 @@
       "bf3860f1",
       "7846b2cd",
       "5d62cd2a"
+    ],
+    "docs/videobench-engineering.md": [
+      "656623ee",
+      "4b208372",
+      "b95c04cc",
+      "a55bb52d",
+      "e69cce9c",
+      "a99b8863",
+      "178b8974",
+      "de51840a"
     ],
     "docs/web-compositions.md": [
       "1a460a3b",

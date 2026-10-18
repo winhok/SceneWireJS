@@ -41,7 +41,16 @@ function App() {
             </a>
           </div>
           <p className="release-note">
-            v1.2.0 available · Local incremental production is released.
+            v1.3.0 available · VideoBench Bounded Engineering Toolkit.
+          </p>
+          <p className="caption">
+            Capture production evidence and inspect deterministic diagnostics.
+            Creative Qualification remains NO_GO; Formal Holdout remains
+            NOT_CONSUMED. Read the{' '}
+            <a href={`${github}/blob/main/docs/videobench-engineering.md`}>
+              VideoBench engineering guide and limits
+            </a>
+            .
           </p>
         </section>
         <section id="demo" aria-labelledby="demo-title">
@@ -170,7 +179,7 @@ function App() {
           <p className="eyebrow">04 / At the terminal</p>
           <h2>Code first. Pixels last.</h2>
           <div className="terminal">
-            <div className="terminal-title">Released CLI / v1.2.0</div>
+            <div className="terminal-title">Released CLI / v1.3.0</div>
             <pre>
               <code>
                 {
@@ -212,13 +221,13 @@ function App() {
           <p className="eyebrow">06 / Quick Start</p>
           <h2>Start with the released CLI.</h2>
           <p>
-            Use Node 24 and install v1.2.0 in your project. Install Chromium for
-            browser rendering.
+            Use Node 22.12 or newer and install v1.3.0 in your project. Install
+            Chromium for browser rendering.
           </p>
           <pre className="terminal">
             <code>
               {
-                'npm install @scenewirejs/cli@1.2.0\nnpm install -D playwright\nnpx playwright install chromium\nnpx scenewire engines\nnpx scenewire scaffold web-dom composition'
+                'npm install @scenewirejs/cli@1.3.0\nnpm install -D playwright\nnpx playwright install chromium\nnpx scenewire engines\nnpx scenewire scaffold web-dom composition'
               }
             </code>
           </pre>
@@ -250,7 +259,7 @@ function App() {
       </main>
       <footer>
         <span>SceneWire / Motion Engineering</span>
-        <span>SceneWire v1.2.0 · public website</span>
+        <span>SceneWire v1.3.0 · public website</span>
       </footer>
     </>
   );

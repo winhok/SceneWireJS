@@ -2,9 +2,9 @@
 
 **Motion Engineering for Coding Agents.**
 
-SceneWire v1.2.0 is released with verified local incremental production. See [the production contract](docs/incremental-production.md).
+SceneWire v1.3.0 is released as the **VideoBench Bounded Engineering Toolkit**: production-output evidence capture, deterministic diagnostics, blinded review packets and conservative aggregation. It retains v1.2's verified local incremental production. See [the release](https://github.com/winhok/SceneWireJS/releases/tag/v1.3.0), [VideoBench engineering tools](docs/videobench-engineering.md) and [the production contract](docs/incremental-production.md).
 
-This source tree prepares the v1.3.0 VideoBench Bounded Engineering Toolkit candidate: production-output evidence capture, deterministic diagnostics, blinded review packets and conservative aggregation. Creative Qualification remains **NO_GO**; Formal Holdout remains **NOT_CONSUMED**. See [candidate scope and local validation](docs/npm-distribution.md). The stable installation below remains v1.2.0 until publication and promotion are verified.
+Creative Qualification remains **NO_GO**; Formal Holdout remains **NOT_CONSUMED**. Engineering evidence does not establish automatic aesthetic improvement or universal quality scoring.
 
 ## What it is
 
@@ -17,7 +17,7 @@ VideoProject owns scenes, tracks, clips, assets and narration. FrameContext driv
 ## Install
 
 ```sh
-npm install @scenewirejs/cli@1.2.0
+npm install @scenewirejs/cli@1.3.0
 npx scenewire engines
 ```
 
@@ -69,6 +69,7 @@ The browser provider isolates local compositions and restricts resource access. 
 - [Web compositions](docs/web-compositions.md)
 - [Engine authoring](docs/engine-authoring.md)
 - [Semantic editing](docs/patch-editing.md)
+- [VideoBench engineering tools and qualification limits](docs/videobench-engineering.md)
 - [Packages and source builds](docs/npm-distribution.md)
 
 Build this source with `pnpm install --frozen-lockfile`, `pnpm typecheck`, `pnpm build` and `pnpm package:check`. `pnpm dev` starts the editor with an asset-free starter project. `pnpm package:smoke` validates a clean installed consumer.
