@@ -48,6 +48,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
           pnpm --filter @scenewirejs/renderer-web exec playwright install --with-deps chromium
+      - name: Install browser prerequisites from each frozen public-npm example lockfile
+        run: |
+          for example in dom react three; do
+            browser_project="$RUNNER_TEMP/adoption-browser-$example"
+            mkdir "$browser_project"
+            cp "examples/agent-adoption/$example/package.json" "examples/agent-adoption/$example/package-lock.json" "$browser_project/"
+            (
+              cd "$browser_project"
+              npm ci
+              npx --no-install playwright install chromium
+            )
+          done
       - name: Allow sandboxing for exact managed Linux browser paths
         run: |
           profile_file="$RUNNER_TEMP/scenewire-managed-chromium"
